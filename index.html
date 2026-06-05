@@ -368,7 +368,7 @@ async function analizza() {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 4096,
+        max_tokens: 8000,
         system: 'Sei un analista BPM di Leyton Italia. Rispondi SEMPRE e SOLO con un oggetto JSON valido, senza alcun testo prima o dopo, senza markdown, senza backtick, senza spiegazioni. Il tuo output deve iniziare con { e finire con }.',
         messages: [{ role: 'user', content: buildPrompt() }]
       })
