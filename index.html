@@ -411,136 +411,34 @@ function resetEmpty() {
 
 function buildPrompt() {
   const g = id => (document.getElementById(id)||{}).value || '';
-  return `Sei il Business Performance Manager di Leyton Italia, esperto in agevolazioni fiscali e finanziamenti pubblici italiani.
-Analizza tutti i dati forniti e restituisci ESCLUSIVAMENTE un oggetto JSON valido, senza testo prima o dopo, senza markdown, senza backtick.
+  return `Sei BPM di Leyton Italia. Analizza i dati e rispondi SOLO con JSON valido, niente altro.
 
-DATI PROSPECT:
-Ragione sociale: ${g('ragione')}
-Sede: ${g('sede')}
-Settore/ATECO: ${g('settore')}
-Dipendenti: ${g('dipendenti')}
-Anno bilancio: ${g('annoBilancio')}
+PROSPECT: ${g('ragione')} | ${g('sede')} | ${g('settore')} | ${g('dipendenti')} dip. | Anno ${g('annoBilancio')}
 
-BILANCIO E DOCUMENTI AZIENDALI:
+DOCUMENTI BILANCIO:
 ${g('docBilancio')}
 
-DATI RNA / AIUTI DI STATO:
+RNA/AIUTI:
 ${g('datiRNA')}
 
-INFORMAZIONI IP (brevetti, marchi, modelli, software):
+IP:
 ${g('datiIP')}
 
-ALTRE INFORMAZIONI:
+ALTRE INFO:
 ${g('altreInfo')}
 
-===== REGOLE DI ANALISI OBBLIGATORIE =====
+REGOLE:
+- CIRS: aliquota 5%, no aliquote maggiorate, compensabile F24 anche senza IRES
+- Patent Box nuovo regime (DL 146/2021): SOLO brevetti/software copyright/disegni-modelli registrati. NO marchi, NO know-how, NO nexus ratio
+- IP separato: registrazione marchi UIBM/EUIPO, brevetti, disegni/modelli, copyright software
+- Iper 4.0: Allegato A/B L.232/2016, software standalone non qualifica, max 20% annuo F24
+- Grants: soglia De Minimis €300k triennale, distingui GBER da De Minimis
+- ESG/Energy: sostenibilita, audit energetici, bandi green
 
-CIRS (Credito Imposta R&S e Innovazione Tecnologica):
-- Aliquota unica 5% (2024) — NON esistono aliquote maggiorate al 10%
-- Straordinarietà e Trasferibilità NON sono criteri Manuale Oslo 2018 validi
-- Base eleggibile: quota costo lavoro tecnico qualificabile + spese esterne R&S
-- Il credito è compensabile in F24 anche senza IRES corrente positiva
+JSON DA RESTITUIRE (testo breve, max 2 frasi per rationale e descrizione):
+{"azienda":{"ragione":"","sede":"","settore":"","dipendenti":"","anno":"","sintesi":"","badges":[{"label":"","tipo":"ok"}]},"kpi":[{"label":"Ricavi netti","valore":"","delta":"","trend":"neu"},{"label":"EBITDA","valore":"","delta":"","trend":"neu"},{"label":"Risultato netto","valore":"","delta":"","trend":"neu"},{"label":"Patrimonio netto","valore":"","delta":"","trend":"neu"},{"label":"Costo lavoro","valore":"","delta":"","trend":"neu"},{"label":"IRES/IRAP","valore":"","delta":"","trend":"neu"}],"trend":{"labels":["Y-2","Y-1","Y"],"ricavi":[null,null,null],"ebitda":[null,null,null],"utile":[null,null,null]},"mappa_valore":[{"area":"CIRS","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Patent Box","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"IP","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Iperammortamento 4.0/5.0","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Grants & Bandi","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"ESG","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Energy","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"}],"nota_ires_irap":"","rna":{"totale_nominale":"n.d.","totale_elemento":"n.d.","n_aiuti":"n.d.","allarme_de_minimis":false,"nota_de_minimis":"","aiuti":[]},"red_flags":[{"gravita":"warn","titolo":"","descrizione":""}],"priorita":[{"rank":1,"area":"","titolo":"","descrizione":"","argomento_chiave":"","badge_label":"","badge_tipo":"ok"}],"domande_call":[{"area":"","domanda":""}]}
 
-PATENT BOX (D.L. 146/2021 — nuovo regime):
-- Ammissibili SOLO: brevetti, software tutelato da copyright, disegni/modelli registrati
-- MARCHI E KNOW-HOW NON AMMISSIBILI nel nuovo regime
-- Il NEXUS RATIO NON ESISTE nel nuovo regime — non menzionarlo MAI
-- Con perdita IRES: beneficio IRAP è comunque monetizzabile (se IRAP > 0)
-- Sezione A deve contenere paragrafo esplicito che colleghi il bene IP alla formazione del reddito
-
-IP (area separata da Patent Box):
-- Registrazione e tutela marchi (UIBM, EUIPO, WIPO)
-- Deposito e gestione brevetti
-- Registrazione disegni e modelli
-- Protezione software e copyright
-- Valorizzazione e licensing del portfolio IP
-
-IPERAMMORTAMENTO / INDUSTRIA 4.0-5.0:
-- Verificare appartenenza beni ad Allegato A (materiali) o B (immateriali) L.232/2016
-- Software standalone NON qualifica — serve interconnessione con macchinari
-- Trademark e SaaS non qualificano
-- Credito compensabile in F24 anche con perdita d'esercizio (max 20% annuo)
-
-GRANTS & BANDI:
-- Verificare capienza soglia De Minimis €300k triennale mobile
-- Distinguere bandi De Minimis da bandi GBER/FESR (limiti diversi)
-- Verificare track record RNA per valutare affidabilità e capienza
-
-ESG: sostenibilità, rendicontazione ESG, certificazioni ambientali/sociali, bandi green
-ENERGY: audit energetici, efficienza energetica, fonti rinnovabili, Fondo EnERgia, GSE
-
-===== STRUTTURA JSON RICHIESTA =====
-Restituisci esattamente questo JSON (tutti i campi obbligatori):
-
-{
-  "azienda": {
-    "ragione": "...",
-    "sede": "...",
-    "settore": "...",
-    "dipendenti": "...",
-    "anno": "...",
-    "sintesi": "2-3 frasi che descrivono l'azienda, il contesto e il momento attuale",
-    "badges": [{"label":"...","tipo":"ok|warn|ko|info|neu"}]
-  },
-  "kpi": [
-    {"label":"Ricavi netti","valore":"€Xk o n.d.","delta":"variazione % o descrizione","trend":"pos|neg|neu"},
-    {"label":"EBITDA","valore":"€Xk o n.d.","delta":"...","trend":"pos|neg|neu"},
-    {"label":"Risultato netto","valore":"€Xk o n.d.","delta":"...","trend":"pos|neg|neu"},
-    {"label":"Patrimonio netto","valore":"€Xk o n.d.","delta":"...","trend":"pos|neg|neu"},
-    {"label":"Costo lavoro","valore":"€Xk o n.d.","delta":"...","trend":"pos|neg|neu"},
-    {"label":"IRES/IRAP","valore":"€Xk o n.d.","delta":"...","trend":"pos|neg|neu"}
-  ],
-  "trend": {
-    "labels": ["Y-2","Y-1","Y"],
-    "ricavi": [num_o_null, num_o_null, num_o_null],
-    "ebitda": [num_o_null, num_o_null, num_o_null],
-    "utile": [num_o_null, num_o_null, num_o_null]
-  },
-  "mappa_valore": [
-    {
-      "area": "CIRS",
-      "potenziale": "alto|medio|basso|nc",
-      "stima": "€Xk–Yk o n.d.",
-      "rationale": "analisi dettagliata 3-4 righe con riferimenti specifici ai dati forniti",
-      "prerequisiti": "cosa verificare/chiedere in call",
-      "badge_label": "es. Alto potenziale",
-      "badge_tipo": "ok|warn|neu|ko"
-    },
-    {"area":"Patent Box","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."},
-    {"area":"IP","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."},
-    {"area":"Iperammortamento 4.0/5.0","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."},
-    {"area":"Grants & Bandi","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."},
-    {"area":"ESG","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."},
-    {"area":"Energy","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."}
-  ],
-  "nota_ires_irap": "paragrafo su IRES/IRAP, perdite fiscali, imposte anticipate e legame con le agevolazioni Leyton",
-  "rna": {
-    "totale_nominale": "€Xk o n.d.",
-    "totale_elemento": "€Xk o n.d.",
-    "n_aiuti": "...",
-    "allarme_de_minimis": true|false,
-    "nota_de_minimis": "...",
-    "aiuti": [
-      {"framework":"...","n_aiuti":"...","importo":"...","stato":"ok|warn|ko","nota":"..."}
-    ]
-  },
-  "red_flags": [
-    {"gravita":"ko|warn","titolo":"titolo breve","descrizione":"descrizione dettagliata con implicazioni per Leyton"}
-  ],
-  "priorita": [
-    {
-      "rank": 1,
-      "area": "es. CIRS",
-      "titolo": "titolo azione",
-      "descrizione": "descrizione dettagliata dell'opportunità e dell'azione da intraprendere",
-      "argomento_chiave": "l'argomento commerciale più forte da usare con il cliente",
-      "badge_label": "es. Credito F24 immediato",
-      "badge_tipo": "ok|warn|info|neu"
-    }
-  ],
-  "domande_call": [
-    {"area":"...","domanda":"domanda specifica e contestuale da fare in call"}
-  ]
+Compila tutti i campi stringa con analisi reale basata sui dati forniti. Mantieni le stringhe concise (max 2 frasi). I numeri nel trend devono essere interi in migliaia (es. 2836 non "2836k").`;
 }`;
 }
 
