@@ -8,7 +8,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#f7f6f3;--bg2:#ffffff;--bg3:#f0efe9;--bg4:#e8e7e0;
+  --bg:#f7f6f3;--bg2:#fff;--bg3:#f0efe9;--bg4:#e8e7e0;
   --text:#1a1a18;--text2:#5a5955;--text3:#8a8880;
   --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
   --ok:#1D9E75;--ok-bg:#e1f5ee;--ok-t:#085041;
@@ -17,607 +17,486 @@
   --info:#185FA5;--info-bg:#e6f1fb;--info-t:#042C53;
   --neu-bg:#f0efe9;--neu-t:#444441;
   --accent:#185FA5;
-  --r-sm:6px;--r-md:8px;--r-lg:14px;
-  --shadow:0 1px 4px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);
+  --shadow:0 1px 4px rgba(0,0,0,0.07);
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh;}
-
-.app{display:grid;grid-template-columns:420px 1fr;grid-template-rows:auto 1fr;min-height:100vh;}
-.topbar{grid-column:1/-1;background:var(--bg2);border-bottom:0.5px solid var(--border2);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:var(--shadow);position:sticky;top:0;z-index:100;}
-.topbar-left{display:flex;align-items:center;gap:12px;}
-.logo{font-size:16px;font-weight:700;color:var(--accent);letter-spacing:-.3px;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;}
+.app{display:grid;grid-template-columns:380px 1fr;grid-template-rows:auto 1fr;min-height:100vh;}
+.topbar{grid-column:1/-1;background:var(--bg2);border-bottom:1px solid var(--border2);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+.logo{font-size:16px;font-weight:700;color:var(--accent);}
 .logo span{color:var(--text3);font-weight:400;}
-.topbar-right{display:flex;gap:8px;align-items:center;}
-
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r-md);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap;}
-.btn-primary{background:var(--accent);color:#fff;}
-.btn-primary:hover{background:#0f4d8a;}
-.btn-primary:disabled{background:#b4b2a9;cursor:not-allowed;opacity:.7;}
-.btn-danger{background:var(--ko-bg);color:var(--ko-t);border:0.5px solid rgba(216,90,48,0.2);}
-.btn-danger:hover{background:#f5c4b3;}
-.btn-pdf{background:var(--ok-bg);color:var(--ok-t);border:0.5px solid rgba(29,158,117,0.2);}
-.btn-pdf:hover{background:#9FE1CB;}
-
-/* INPUT PANEL */
-.input-panel{background:var(--bg2);border-right:0.5px solid var(--border2);overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px;height:calc(100vh - 49px);position:sticky;top:49px;}
-.section-block{background:var(--bg3);border-radius:var(--r-lg);padding:14px 16px;border:0.5px solid var(--border);display:flex;flex-direction:column;gap:10px;}
-.panel-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;}
-
-.field-group{display:flex;flex-direction:column;gap:3px;}
-.field-group label{font-size:12px;color:var(--text2);font-weight:500;}
-.field-group input,.field-group select,.field-group textarea{
-  width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r-md);
-  font-size:13px;color:var(--text);background:var(--bg2);font-family:inherit;
-  resize:vertical;outline:none;transition:border .15s;
-}
-.field-group input:focus,.field-group textarea:focus{border-color:var(--accent);}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-
-.api-row{display:flex;gap:8px;align-items:center;}
-.api-row input{flex:1;}
-.api-status{font-size:11px;padding:3px 8px;border-radius:4px;white-space:nowrap;}
-.api-ok{background:var(--ok-bg);color:var(--ok-t);}
-.api-err{background:var(--ko-bg);color:var(--ko-t);}
-
-/* DASHBOARD */
-.dashboard{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;height:calc(100vh - 49px);}
-
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:80px 20px;color:var(--text3);text-align:center;flex:1;min-height:400px;}
-.empty-state h3{font-size:16px;font-weight:500;color:var(--text2);}
-.empty-state p{font-size:13px;max-width:360px;line-height:1.6;}
-
-.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:80px 20px;min-height:400px;}
+.btns{display:flex;gap:8px;}
+.btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;}
+.btn-cancel{background:#faece7;color:#4A1B0C;}
+.btn-run{background:var(--accent);color:#fff;}
+.btn-pdf{background:#e1f5ee;color:#085041;}
+.input-panel{background:var(--bg2);border-right:1px solid var(--border2);overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;height:calc(100vh - 49px);position:sticky;top:49px;}
+.block{background:var(--bg3);border-radius:12px;padding:14px;border:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
+.block-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;}
+.field{display:flex;flex-direction:column;gap:3px;}
+.field label{font-size:12px;color:var(--text2);font-weight:500;}
+.field input,.field textarea{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-size:13px;color:var(--text);background:var(--bg2);font-family:inherit;outline:none;}
+.field input:focus,.field textarea:focus{border-color:var(--accent);}
+.field textarea{resize:vertical;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.dash{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;height:calc(100vh - 49px);}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:80px 20px;color:var(--text3);text-align:center;flex:1;}
+.empty h3{font-size:16px;color:var(--text2);}
+.empty p{font-size:13px;max-width:320px;}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:80px 20px;}
 .spinner{width:36px;height:36px;border:3px solid var(--bg4);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.loading-msg{font-size:14px;color:var(--text2);text-align:center;max-width:280px;line-height:1.5;}
-.loading-sub{font-size:12px;color:var(--text3);}
-
-/* DASH CARDS */
-.dash-header{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;box-shadow:var(--shadow);}
-.dash-company{font-size:22px;font-weight:700;color:var(--text);}
-.dash-meta{font-size:13px;color:var(--text2);margin-top:3px;}
-.dash-sintesi{font-size:13px;color:var(--text2);margin-top:8px;line-height:1.6;padding-top:8px;border-top:0.5px solid var(--border);}
-.dash-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
-
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--r-md);font-size:12px;font-weight:500;}
-.badge-ok{background:var(--ok-bg);color:var(--ok-t);}
-.badge-warn{background:var(--warn-bg);color:var(--warn-t);}
-.badge-ko{background:var(--ko-bg);color:var(--ko-t);}
-.badge-info{background:var(--info-bg);color:var(--info-t);}
-.badge-neu{background:var(--neu-bg);color:var(--neu-t);}
-
-.section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
-
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;}
-.kpi{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--shadow);}
-.kpi-label{font-size:11px;color:var(--text2);margin-bottom:4px;}
-.kpi-value{font-size:20px;font-weight:700;color:var(--text);}
-.kpi-delta{font-size:11px;margin-top:2px;}
-.delta-neg{color:var(--ko);}
-.delta-pos{color:var(--ok);}
-.delta-neu{color:var(--text3);}
-
-.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--shadow);}
-
-/* MAPPA VALORE */
-.value-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;}
-.value-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
-.value-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
-.value-card.alto::before{background:var(--ok);}
-.value-card.medio::before{background:var(--warn);}
-.value-card.basso::before{background:var(--text3);}
-.value-card.nc::before{background:var(--bg4);}
-.value-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px;}
-.value-card-name{font-size:14px;font-weight:600;color:var(--text);}
-.value-card-body{font-size:12px;color:var(--text2);line-height:1.6;}
-.value-card-body strong{font-weight:600;color:var(--text);}
-.prereq{margin-top:8px;font-size:11px;color:var(--warn);border-top:0.5px solid var(--border);padding-top:7px;line-height:1.5;}
-.value-card-est{margin-top:8px;font-size:13px;font-weight:700;}
-.value-card-est.alto{color:var(--ok);}
-.value-card-est.medio{color:var(--warn);}
-.value-card-est.basso{color:var(--text3);}
-
-/* TABLE */
-.table-wrap{overflow-x:auto;border-radius:var(--r-md);overflow:hidden;}
+.loading p{font-size:14px;color:var(--text2);}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:500;}
+.b-ok{background:var(--ok-bg);color:var(--ok-t);}
+.b-warn{background:var(--warn-bg);color:var(--warn-t);}
+.b-ko{background:var(--ko-bg);color:var(--ko-t);}
+.b-info{background:var(--info-bg);color:var(--info-t);}
+.b-neu{background:var(--neu-bg);color:var(--neu-t);}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);}
+.sec{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+.kpi-l{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.kpi-v{font-size:20px;font-weight:700;}
+.kpi-d{font-size:11px;margin-top:2px;}
+.pos{color:var(--ok);}
+.neg{color:var(--ko);}
+.neu{color:var(--text3);}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.vc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;}
+.vc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.vc.alto::before{background:var(--ok);}
+.vc.medio::before{background:var(--warn);}
+.vc.basso::before{background:var(--text3);}
+.vc.nc::before{background:var(--bg4);}
+.vc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:6px;}
+.vc-name{font-size:13px;font-weight:600;}
+.vc-body{font-size:12px;color:var(--text2);line-height:1.55;}
+.vc-pre{margin-top:6px;font-size:11px;color:var(--warn);border-top:1px solid var(--border);padding-top:6px;}
+.vc-est{margin-top:6px;font-size:13px;font-weight:700;}
+.vc-est.alto{color:var(--ok);}
+.vc-est.medio{color:var(--warn);}
+.fl{display:flex;flex-direction:column;gap:7px;}
+.fi{display:flex;gap:9px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:11px 13px;}
+.fd{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.fd.ko{background:var(--ko);}
+.fd.warn{background:var(--warn);}
+.ft{font-size:13px;color:var(--text2);line-height:1.6;}
+.ft strong{color:var(--text);}
+.pl{display:flex;flex-direction:column;gap:9px;}
+.pi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;gap:12px;}
+.pi.r1{border-left:3px solid var(--ok);}
+.pi.r2{border-left:3px solid var(--warn);}
+.pi.r3{border-left:3px solid var(--info);}
+.pi.r4{border-left:3px solid var(--text3);}
+.pr{font-size:22px;font-weight:700;color:var(--text3);min-width:22px;}
+.pt{font-size:14px;font-weight:600;margin-bottom:3px;}
+.pd{font-size:13px;color:var(--text2);line-height:1.6;}
+.note{border-radius:8px;padding:10px 13px;font-size:13px;line-height:1.6;}
+.note-i{background:var(--info-bg);color:var(--info-t);}
+.note-w{background:var(--warn-bg);color:var(--warn-t);}
 table{width:100%;border-collapse:collapse;font-size:13px;}
-th{background:var(--bg3);font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;text-align:left;border-bottom:0.5px solid var(--border2);}
-td{padding:9px 12px;border-bottom:0.5px solid var(--border);vertical-align:top;color:var(--text);}
+th{background:var(--bg3);font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;padding:8px 11px;text-align:left;border-bottom:1px solid var(--border2);}
+td{padding:8px 11px;border-bottom:1px solid var(--border);color:var(--text);}
 tr:last-child td{border-bottom:none;}
-tr.total-row td{font-weight:600;background:var(--bg3);}
-.td-r{text-align:right;}
-
-/* FLAGS */
-.flag-list{display:flex;flex-direction:column;gap:8px;}
-.flag-item{display:flex;gap:10px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-md);padding:12px 14px;box-shadow:var(--shadow);}
-.flag-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
-.flag-dot.ko{background:var(--ko);}
-.flag-dot.warn{background:var(--warn);}
-.flag-text{font-size:13px;color:var(--text2);line-height:1.6;}
-.flag-text strong{color:var(--text);font-weight:600;}
-
-/* PRIORITÀ */
-.priority-list{display:flex;flex-direction:column;gap:10px;}
-.prio-item{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;display:flex;gap:14px;box-shadow:var(--shadow);}
-.prio-item.p1{border-left:3px solid var(--ok);}
-.prio-item.p2{border-left:3px solid var(--warn);}
-.prio-item.p3{border-left:3px solid var(--info);}
-.prio-item.p4{border-left:3px solid var(--text3);}
-.prio-rank{font-size:22px;font-weight:700;color:var(--text3);min-width:24px;line-height:1.2;}
-.prio-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
-.prio-desc{font-size:13px;color:var(--text2);line-height:1.6;}
-
-/* CHART */
-.chart-wrap{position:relative;width:100%;}
-.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;font-size:12px;color:var(--text2);}
-.legend span{display:flex;align-items:center;gap:4px;}
-.legend-sq{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
-
-/* NOTE */
-.note-box{border-radius:var(--r-md);padding:11px 14px;font-size:13px;line-height:1.6;}
-.note-warn{background:var(--warn-bg);color:var(--warn-t);border:0.5px solid rgba(186,117,23,0.25);}
-.note-ok{background:var(--ok-bg);color:var(--ok-t);border:0.5px solid rgba(29,158,117,0.25);}
-.note-info{background:var(--info-bg);color:var(--info-t);border:0.5px solid rgba(24,95,165,0.25);}
-
-.dash-footer{text-align:center;font-size:11px;color:var(--text3);padding:10px 0 4px;border-top:0.5px solid var(--border);}
-
-/* PRINT */
+.tr{text-align:right;}
+.foot{text-align:center;font-size:11px;color:var(--text3);padding:8px 0;border-top:1px solid var(--border);}
 @media print{
-  .topbar .topbar-right,.input-panel{display:none!important;}
+  .topbar .btns,.input-panel{display:none!important;}
   .app{display:block;}
-  .topbar{box-shadow:none;border-bottom:1px solid #ccc;}
-  .dashboard{height:auto;overflow:visible;padding:12px;}
-  .card,.kpi,.value-card,.flag-item,.prio-item{box-shadow:none;break-inside:avoid;}
-  .value-map{grid-template-columns:repeat(3,1fr);}
-  .kpi-grid{grid-template-columns:repeat(4,1fr);}
+  .dash{height:auto;overflow:visible;padding:12px;}
   @page{margin:15mm;size:A4;}
 }
 </style>
 </head>
 <body>
 <div class="app">
-
-<!-- TOPBAR -->
 <div class="topbar">
-  <div class="topbar-left">
-    <div class="logo">LEYTON <span>BPM Dashboard</span></div>
-    <div id="apiStatusBadge"></div>
-  </div>
-  <div class="topbar-right">
-    <button class="btn btn-danger" onclick="clearAll()">🗑 Cancella</button>
-    <button class="btn btn-primary" id="btnAnalizza" onclick="analizza()">⚡ Analizza</button>
-    <button class="btn btn-pdf" onclick="window.print()">📄 Genera PDF</button>
+  <div class="logo">LEYTON <span>BPM Dashboard</span></div>
+  <div class="btns">
+    <button class="btn btn-cancel" id="btnCancella">🗑 Cancella</button>
+    <button class="btn btn-run" id="btnAnalizza">⚡ Analizza</button>
+    <button class="btn btn-pdf" id="btnPDF">📄 Genera PDF</button>
   </div>
 </div>
 
-<!-- INPUT PANEL -->
 <div class="input-panel">
-
-  <div class="section-block">
-    <div class="panel-title">🔑 API Key Anthropic</div>
-    <div class="api-row">
-      <input type="password" id="apiKey" placeholder="sk-ant-..." oninput="saveApiKey(this.value)" />
-      <span id="apiStatus" class="api-status" style="display:none"></span>
-    </div>
-    <div style="font-size:11px;color:var(--text3);">Salvata localmente nel browser. Non trasmessa altrove.</div>
-  </div>
-
-  <div class="section-block">
-    <div class="panel-title">🏢 Anagrafica</div>
-    <div class="field-group"><label>Ragione sociale</label><input type="text" id="ragione" placeholder="Es. Bieffe Project SRL" oninput="autosave()" /></div>
-    <div class="grid-2">
-      <div class="field-group"><label>Sede / Provincia</label><input type="text" id="sede" placeholder="Es. Bologna (BO)" oninput="autosave()" /></div>
-      <div class="field-group"><label>Settore / ATECO</label><input type="text" id="settore" placeholder="Es. 71.12 – Ingegneria" oninput="autosave()" /></div>
-    </div>
-    <div class="grid-2">
-      <div class="field-group"><label>Dipendenti</label><input type="number" id="dipendenti" placeholder="Es. 49" oninput="autosave()" /></div>
-      <div class="field-group"><label>Anno bilancio</label><input type="number" id="annoBilancio" placeholder="Es. 2024" oninput="autosave()" /></div>
+  <div class="block">
+    <div class="block-title">🔑 API Key Anthropic</div>
+    <div class="field">
+      <input type="password" id="apiKey" placeholder="sk-ant-..." />
+      <span id="apiNote" style="font-size:11px;color:var(--text3);">Salvata localmente. Non trasmessa altrove.</span>
     </div>
   </div>
-
-  <div class="section-block">
-    <div class="panel-title">📊 Bilancio e documenti aziendali</div>
-    <div style="font-size:12px;color:var(--text2);">Incolla tutto qui: conto economico, stato patrimoniale, nota integrativa, relazione gestione, qualsiasi documento in tuo possesso.</div>
-    <div class="field-group">
-      <textarea id="docBilancio" rows="10" placeholder="Incolla qui tutto il testo del bilancio, nota integrativa, relazione sulla gestione..." oninput="autosave()"></textarea>
+  <div class="block">
+    <div class="block-title">🏢 Anagrafica</div>
+    <div class="field"><label>Ragione sociale</label><input type="text" id="ragione" placeholder="Es. Bieffe Project SRL" /></div>
+    <div class="g2">
+      <div class="field"><label>Sede</label><input type="text" id="sede" placeholder="Es. Modena (MO)" /></div>
+      <div class="field"><label>Settore / ATECO</label><input type="text" id="settore" placeholder="Es. 71.12" /></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Dipendenti</label><input type="number" id="dipendenti" placeholder="Es. 49" /></div>
+      <div class="field"><label>Anno bilancio</label><input type="number" id="annoBilancio" placeholder="Es. 2024" /></div>
     </div>
   </div>
-
-  <div class="section-block">
-    <div class="panel-title">📋 RNA / Aiuti di Stato</div>
-    <div class="field-group">
-      <textarea id="datiRNA" rows="5" placeholder="Incolla qui i dati sugli aiuti di stato ricevuti (dal portale RNA o altro)..." oninput="autosave()"></textarea>
-    </div>
+  <div class="block">
+    <div class="block-title">📊 Bilancio e documenti</div>
+    <div style="font-size:12px;color:var(--text2);">Incolla tutto: conto economico, stato patrimoniale, nota integrativa, qualsiasi documento.</div>
+    <div class="field"><textarea id="docBilancio" rows="10" placeholder="Incolla qui il testo del bilancio..."></textarea></div>
   </div>
-
-  <div class="section-block">
-    <div class="panel-title">💡 Informazioni IP (brevetti, marchi, modelli, software)</div>
-    <div class="field-group">
-      <textarea id="datiIP" rows="4" placeholder="Es. brevetti registrati, marchi depositati, software sviluppato internamente, disegni/modelli registrati..." oninput="autosave()"></textarea>
-    </div>
+  <div class="block">
+    <div class="block-title">📋 RNA / Aiuti di Stato</div>
+    <div class="field"><textarea id="datiRNA" rows="4" placeholder="Incolla dati dal portale RNA..."></textarea></div>
   </div>
-
-  <div class="section-block">
-    <div class="panel-title">📝 Altre informazioni</div>
-    <div class="field-group">
-      <textarea id="altreInfo" rows="4" placeholder="News, sito web, LinkedIn, notizie di settore, informazioni commerciali, qualsiasi altra cosa utile..." oninput="autosave()"></textarea>
-    </div>
+  <div class="block">
+    <div class="block-title">💡 Info IP (brevetti, marchi, software)</div>
+    <div class="field"><textarea id="datiIP" rows="3" placeholder="Brevetti, marchi, software proprietario..."></textarea></div>
   </div>
-
+  <div class="block">
+    <div class="block-title">📝 Altre informazioni</div>
+    <div class="field"><textarea id="altreInfo" rows="3" placeholder="News, sito web, LinkedIn, altro..."></textarea></div>
+  </div>
 </div>
 
-<!-- DASHBOARD -->
-<div class="dashboard" id="dashboard">
-  <div class="empty-state" id="emptyState">
-    <svg width="60" height="60" viewBox="0 0 60 60" fill="none"><rect x="6" y="6" width="48" height="48" rx="10" stroke="#b4b2a9" stroke-width="2"/><path d="M18 38l10-10 8 8 10-14" stroke="#b4b2a9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="44" cy="18" r="4" stroke="#b4b2a9" stroke-width="2"/></svg>
+<div class="dash" id="dash">
+  <div class="empty" id="stateEmpty">
+    <svg width="56" height="56" viewBox="0 0 56 56" fill="none"><rect x="4" y="4" width="48" height="48" rx="10" stroke="#b4b2a9" stroke-width="2"/><path d="M16 36l10-10 8 8 10-14" stroke="#b4b2a9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <h3>Pronto per l'analisi</h3>
-    <p>Inserisci la API key, compila l'anagrafica e incolla i documenti del prospect. Poi premi <strong>⚡ Analizza</strong>.</p>
+    <p>Inserisci la API key, compila l'anagrafica, incolla i documenti e premi <strong>Analizza</strong>.</p>
   </div>
-  <div id="loadingState" style="display:none;">
-    <div class="loading">
-      <div class="spinner"></div>
-      <div class="loading-msg" id="loadingMsg">Analisi in corso...</div>
-      <div class="loading-sub">L'elaborazione richiede circa 30–60 secondi</div>
-    </div>
+  <div class="loading" id="stateLoading" style="display:none;">
+    <div class="spinner"></div>
+    <p id="loadMsg">Analisi in corso...</p>
+    <p style="font-size:12px;color:var(--text3);">Circa 30–60 secondi</p>
   </div>
-  <div id="dashContent" style="display:none;flex-direction:column;gap:16px;"></div>
+  <div id="stateResult" style="display:none;"></div>
 </div>
-
 </div>
 
 <script>
-let chartInstances = {};
+(function() {
 
-window.onload = function() { loadAll(); updateBtn(); };
+var charts = {};
 
-function autosave() {
-  const ids = ['ragione','sede','settore','dipendenti','annoBilancio','docBilancio','datiRNA','datiIP','altreInfo'];
-  const d = {};
-  ids.forEach(id => { const el = document.getElementById(id); if(el) d[id] = el.value; });
-  localStorage.setItem('bpm_data_v2', JSON.stringify(d));
-  updateBtn();
+function qs(id) { return document.getElementById(id); }
+
+function save() {
+  var d = {};
+  ['ragione','sede','settore','dipendenti','annoBilancio','docBilancio','datiRNA','datiIP','altreInfo'].forEach(function(k) {
+    var el = qs(k); if(el) d[k] = el.value;
+  });
+  try { localStorage.setItem('bpm_d', JSON.stringify(d)); } catch(e) {}
 }
 
-function saveApiKey(v) {
-  localStorage.setItem('bpm_apikey', v);
-  updateApiStatus(v);
-  updateBtn();
-}
+function load() {
+  var key = '';
+  try { key = localStorage.getItem('bpm_key') || ''; } catch(e) {}
+  if(key) { var el = qs('apiKey'); if(el) el.value = key; }
 
-function loadAll() {
-  const saved = localStorage.getItem('bpm_data_v2');
+  var saved = '';
+  try { saved = localStorage.getItem('bpm_d'); } catch(e) {}
   if(saved) {
-    const d = JSON.parse(saved);
-    Object.keys(d).forEach(k => { const el = document.getElementById(k); if(el) el.value = d[k]; });
+    try {
+      var d = JSON.parse(saved);
+      Object.keys(d).forEach(function(k) { var el = qs(k); if(el) el.value = d[k]; });
+    } catch(e) {}
   }
-  const key = localStorage.getItem('bpm_apikey');
-  if(key) { document.getElementById('apiKey').value = key; updateApiStatus(key); }
-  const last = localStorage.getItem('bpm_last_v2');
-  if(last) { try { renderDashboard(JSON.parse(last)); } catch(e) {} }
-  updateBtn();
-}
 
-function updateApiStatus(v) {
-  const el = document.getElementById('apiStatus');
-  const badge = document.getElementById('apiStatusBadge');
-  if(!v || v.length < 20) { el.style.display='none'; badge.innerHTML=''; return; }
-  el.style.display='inline';
-  if(v.startsWith('sk-ant-')) {
-    el.className='api-status api-ok'; el.textContent='✓ Valida';
-    badge.innerHTML='<span class="badge badge-ok" style="font-size:11px;">API connessa</span>';
-  } else {
-    el.className='api-status api-err'; el.textContent='⚠ Formato errato';
-    badge.innerHTML='<span class="badge badge-ko" style="font-size:11px;">API non valida</span>';
+  var last = '';
+  try { last = localStorage.getItem('bpm_last'); } catch(e) {}
+  if(last) {
+    try { render(JSON.parse(last)); } catch(e) {}
   }
-}
-
-function updateBtn() {
-  const key = localStorage.getItem('bpm_apikey') || '';
-  const ragione = (document.getElementById('ragione')||{}).value || '';
-  const doc = (document.getElementById('docBilancio')||{}).value || '';
-  document.getElementById('btnAnalizza').disabled = false;
 }
 
 function clearAll() {
-  if(!confirm('Cancellare tutti i dati e il cruscotto corrente?')) return;
-  ['ragione','sede','settore','dipendenti','annoBilancio','docBilancio','datiRNA','datiIP','altreInfo']
-    .forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
-  localStorage.removeItem('bpm_data_v2');
-  localStorage.removeItem('bpm_last_v2');
-  Object.values(chartInstances).forEach(c => { try{c.destroy();}catch(e){} });
-  chartInstances = {};
-  document.getElementById('emptyState').style.display='flex';
-  document.getElementById('loadingState').style.display='none';
-  const dc = document.getElementById('dashContent');
-  dc.style.display='none'; dc.innerHTML='';
-  updateBtn();
+  if(!confirm('Cancellare tutti i dati?')) return;
+  ['ragione','sede','settore','dipendenti','annoBilancio','docBilancio','datiRNA','datiIP','altreInfo'].forEach(function(k) {
+    var el = qs(k); if(el) el.value = '';
+  });
+  try { localStorage.removeItem('bpm_d'); localStorage.removeItem('bpm_last'); } catch(e) {}
+  Object.keys(charts).forEach(function(k) { try { charts[k].destroy(); } catch(e) {} });
+  charts = {};
+  qs('stateEmpty').style.display = 'flex';
+  qs('stateLoading').style.display = 'none';
+  qs('stateResult').style.display = 'none';
+  qs('stateResult').innerHTML = '';
+  save();
 }
 
-async function analizza() {
-  const apiKey = localStorage.getItem('bpm_apikey') || '';
-  if(!apiKey) { alert('Inserisci la API key Anthropic'); return; }
-
-  document.getElementById('emptyState').style.display='none';
-  document.getElementById('dashContent').style.display='none';
-  document.getElementById('loadingState').style.display='flex';
-
-  const msgs = [
-    'Lettura e interpretazione documenti...',
-    'Estrazione dati di bilancio...',
-    'Analisi mappa del valore Leyton...',
-    'Valutazione CIRS e Patent Box...',
-    'Analisi IP, Iperammortamento e Bandi...',
-    'Verifica RNA e soglia De Minimis...',
-    'Identificazione red flag...',
-    'Definizione priorità commerciali...',
-    'Generazione cruscotto finale...'
-  ];
-  let mi = 0;
-  const iv = setInterval(() => {
-    mi = (mi+1) % msgs.length;
-    const el = document.getElementById('loadingMsg');
-    if(el) el.textContent = msgs[mi];
-  }, 2200);
-
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 8000,
-        system: 'Sei un analista BPM di Leyton Italia. Rispondi SEMPRE e SOLO con un oggetto JSON valido, senza alcun testo prima o dopo, senza markdown, senza backtick, senza spiegazioni. Il tuo output deve iniziare con { e finire con }.',
-        messages: [{ role: 'user', content: buildPrompt() }]
-      })
-    });
-    clearInterval(iv);
-    if(!resp.ok) {
-      const err = await resp.json().catch(()=>({error:{message:'Errore '+resp.status}}));
-      throw new Error(err.error?.message || 'Errore API ' + resp.status);
-    }
-    const data = await resp.json();
-    const text = data.content[0].text;
-    console.log("BPM_RAW:", text.slice(0,500));
-    localStorage.setItem("bpm_raw_debug", text.slice(0,3000));
-    const json = extractJSON(text);
-    if(!json) {
-      const preview = text.slice(0,120).replace(/</g,"&lt;");
-      throw new Error("Parsing fallito. Risposta ricevuta: " + preview);
-    }
-    localStorage.setItem('bpm_last_v2', JSON.stringify(json));
-    renderDashboard(json);
-  } catch(e) {
-    clearInterval(iv);
-    document.getElementById('loadingState').style.display='none';
-    document.getElementById('emptyState').style.display='flex';
-    document.getElementById('emptyState').innerHTML = `
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="#D85A30" stroke-width="2"/><path d="M24 14v12M24 32v2" stroke="#D85A30" stroke-width="2" stroke-linecap="round"/></svg>
-      <h3 style="color:var(--ko);">Errore</h3>
-      <p style="color:var(--text2);">${e.message}</p>
-      <button class="btn btn-pdf" onclick="resetEmpty()" style="margin-top:8px;">← Riprova</button>`;
-  }
-}
-
-function resetEmpty() {
-  document.getElementById('emptyState').innerHTML = `
-    <svg width="60" height="60" viewBox="0 0 60 60" fill="none"><rect x="6" y="6" width="48" height="48" rx="10" stroke="#b4b2a9" stroke-width="2"/><path d="M18 38l10-10 8 8 10-14" stroke="#b4b2a9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="44" cy="18" r="4" stroke="#b4b2a9" stroke-width="2"/></svg>
-    <h3>Pronto per l'analisi</h3>
-    <p>Inserisci la API key, compila l'anagrafica e incolla i documenti del prospect. Poi premi <strong>⚡ Analizza</strong>.</p>`;
-  document.getElementById('emptyState').style.display='flex';
-}
+function getVal(id) { var el = qs(id); return el ? el.value : ''; }
 
 function buildPrompt() {
-  const g = id => (document.getElementById(id)||{}).value || '';
-  return `Sei BPM di Leyton Italia. Analizza i dati e rispondi SOLO con JSON valido, niente altro.
-
-PROSPECT: ${g('ragione')} | ${g('sede')} | ${g('settore')} | ${g('dipendenti')} dip. | Anno ${g('annoBilancio')}
-
-DOCUMENTI BILANCIO:
-${g('docBilancio')}
-
-RNA/AIUTI:
-${g('datiRNA')}
-
-IP:
-${g('datiIP')}
-
-ALTRE INFO:
-${g('altreInfo')}
-
-REGOLE:
-- CIRS: aliquota 5%, no aliquote maggiorate, compensabile F24 anche senza IRES
-- Patent Box nuovo regime (DL 146/2021): SOLO brevetti/software copyright/disegni-modelli registrati. NO marchi, NO know-how, NO nexus ratio
-- IP separato: registrazione marchi UIBM/EUIPO, brevetti, disegni/modelli, copyright software
-- Iper 4.0: Allegato A/B L.232/2016, software standalone non qualifica, max 20% annuo F24
-- Grants: soglia De Minimis €300k triennale, distingui GBER da De Minimis
-- ESG/Energy: sostenibilita, audit energetici, bandi green
-
-JSON DA RESTITUIRE (testo breve, max 2 frasi per rationale e descrizione):
-{"azienda":{"ragione":"","sede":"","settore":"","dipendenti":"","anno":"","sintesi":"","badges":[{"label":"","tipo":"ok"}]},"kpi":[{"label":"Ricavi netti","valore":"","delta":"","trend":"neu"},{"label":"EBITDA","valore":"","delta":"","trend":"neu"},{"label":"Risultato netto","valore":"","delta":"","trend":"neu"},{"label":"Patrimonio netto","valore":"","delta":"","trend":"neu"},{"label":"Costo lavoro","valore":"","delta":"","trend":"neu"},{"label":"IRES/IRAP","valore":"","delta":"","trend":"neu"}],"trend":{"labels":["Y-2","Y-1","Y"],"ricavi":[null,null,null],"ebitda":[null,null,null],"utile":[null,null,null]},"mappa_valore":[{"area":"CIRS","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Patent Box","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"IP","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Iperammortamento 4.0/5.0","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Grants & Bandi","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"ESG","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Energy","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"}],"nota_ires_irap":"","rna":{"totale_nominale":"n.d.","totale_elemento":"n.d.","n_aiuti":"n.d.","allarme_de_minimis":false,"nota_de_minimis":"","aiuti":[]},"red_flags":[{"gravita":"warn","titolo":"","descrizione":""}],"priorita":[{"rank":1,"area":"","titolo":"","descrizione":"","argomento_chiave":"","badge_label":"","badge_tipo":"ok"}],"domande_call":[{"area":"","domanda":""}]}
-
-Compila tutti i campi stringa con analisi reale basata sui dati forniti. Mantieni le stringhe concise (max 2 frasi). I numeri nel trend devono essere interi in migliaia (es. 2836 non "2836k").`;
-}`;
+  return 'Sei BPM di Leyton Italia. Analizza i dati e rispondi SOLO con JSON valido, niente testo prima o dopo.\n\n'
+    + 'PROSPECT: ' + getVal('ragione') + ' | ' + getVal('sede') + ' | ' + getVal('settore') + ' | ' + getVal('dipendenti') + ' dip | Anno ' + getVal('annoBilancio') + '\n\n'
+    + 'BILANCIO E DOCUMENTI:\n' + getVal('docBilancio') + '\n\n'
+    + 'RNA/AIUTI:\n' + getVal('datiRNA') + '\n\n'
+    + 'IP:\n' + getVal('datiIP') + '\n\n'
+    + 'ALTRE INFO:\n' + getVal('altreInfo') + '\n\n'
+    + 'REGOLE OBBLIGATORIE:\n'
+    + '- CIRS: aliquota 5% unica (2024), compensabile F24 anche senza IRES positiva\n'
+    + '- Patent Box DL 146/2021: SOLO brevetti, software copyright, disegni/modelli registrati. MAI marchi o know-how. MAI nexus ratio.\n'
+    + '- IP (area separata): registrazione marchi UIBM/EUIPO, brevetti, disegni/modelli, copyright software\n'
+    + '- Iperammortamento: Allegato A/B L.232/2016, software standalone non qualifica\n'
+    + '- Grants: soglia De Minimis 300k triennale\n\n'
+    + 'RISPONDI CON QUESTO JSON COMPILATO (stringhe brevi, max 2 frasi):\n'
+    + '{"azienda":{"ragione":"","sede":"","settore":"","dipendenti":"","anno":"","sintesi":"","badges":[{"label":"","tipo":"ok"}]},'
+    + '"kpi":[{"label":"Ricavi netti","valore":"","delta":"","trend":"neu"},{"label":"EBITDA","valore":"","delta":"","trend":"neu"},{"label":"Risultato netto","valore":"","delta":"","trend":"neu"},{"label":"Patrimonio netto","valore":"","delta":"","trend":"neu"},{"label":"Costo lavoro","valore":"","delta":"","trend":"neu"},{"label":"IRES/IRAP","valore":"","delta":"","trend":"neu"}],'
+    + '"trend":{"labels":["Y-2","Y-1","Y"],"ricavi":[null,null,null],"ebitda":[null,null,null],"utile":[null,null,null]},'
+    + '"mappa_valore":[{"area":"CIRS","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Patent Box","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"IP","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Iperammortamento 4.0/5.0","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Grants & Bandi","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"ESG","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"},{"area":"Energy","potenziale":"nc","stima":"n.d.","rationale":"","prerequisiti":"","badge_label":"","badge_tipo":"neu"}],'
+    + '"nota_ires_irap":"",'
+    + '"rna":{"totale_nominale":"n.d.","totale_elemento":"n.d.","n_aiuti":"n.d.","allarme_de_minimis":false,"nota_de_minimis":"","aiuti":[]},'
+    + '"red_flags":[{"gravita":"warn","titolo":"","descrizione":""}],'
+    + '"priorita":[{"rank":1,"area":"","titolo":"","descrizione":"","argomento_chiave":"","badge_label":"","badge_tipo":"ok"}],'
+    + '"domande_call":[{"area":"","domanda":""}]}';
 }
 
-function extractJSON(text) {
-  try { return JSON.parse(text.trim()); } catch(e) {}
-  try {
-    const c = text.replace(/```json\s*/gi,"").replace(/```\s*/g,"").trim();
-    return JSON.parse(c);
-  } catch(e) {}
-  try {
-    const s = text.indexOf("{"), e2 = text.lastIndexOf("}");
-    if(s !== -1 && e2 > s) {
-      let j = text.slice(s, e2+1);
-      j = j.replace(/,\s*([}\]])/g, "$1");
-      return JSON.parse(j);
-    }
-  } catch(e) {}
+function parseJSON(text) {
+  var t = text.trim();
+  try { return JSON.parse(t); } catch(e) {}
+  t = t.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+  try { return JSON.parse(t); } catch(e) {}
+  var s = t.indexOf('{'), e = t.lastIndexOf('}');
+  if(s >= 0 && e > s) {
+    try { return JSON.parse(t.slice(s, e+1)); } catch(e2) {}
+    try { return JSON.parse(t.slice(s, e+1).replace(/,\s*([}\]])/g,'$1')); } catch(e3) {}
+  }
   return null;
 }
 
-function renderDashboard(d) {
-  document.getElementById('loadingState').style.display='none';
-  document.getElementById('emptyState').style.display='none';
-  const el = document.getElementById('dashContent');
-  el.style.display='flex';
-  el.style.flexDirection='column';
-  el.style.gap='16px';
+function showError(msg) {
+  qs('stateLoading').style.display = 'none';
+  qs('stateEmpty').style.display = 'flex';
+  qs('stateEmpty').innerHTML = '<p style="color:var(--ko);font-weight:600;">Errore</p><p style="font-size:13px;color:var(--text2);max-width:360px;">' + msg + '</p>';
+}
 
-  Object.values(chartInstances).forEach(c => { try{c.destroy();}catch(e){} });
-  chartInstances = {};
+function runAnalysis() {
+  var key = getVal('apiKey');
+  try { localStorage.setItem('bpm_key', key); } catch(e) {}
+  save();
 
-  const az = d.azienda||{}, kpis = d.kpi||[], trend = d.trend||{};
-  const mv = d.mappa_valore||[], rna = d.rna||{};
-  const flags = d.red_flags||[], prios = d.priorita||[], domande = d.domande_call||[];
+  if(!key || key.length < 20) { alert('Inserisci la API key Anthropic (sk-ant-...)'); return; }
 
-  let html = '';
+  qs('stateEmpty').style.display = 'none';
+  qs('stateResult').style.display = 'none';
+  qs('stateResult').innerHTML = '';
+  qs('stateLoading').style.display = 'flex';
+
+  var msgs = ['Lettura documenti...','Analisi bilancio...','Valutazione aree Leyton...','Verifica RNA...','Generazione cruscotto...'];
+  var mi = 0;
+  var iv = setInterval(function() { mi = (mi+1) % msgs.length; var el = qs('loadMsg'); if(el) el.textContent = msgs[mi]; }, 2000);
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 8000,
+      system: 'Sei un analista BPM di Leyton Italia. Rispondi SEMPRE e SOLO con JSON valido. Nessun testo prima o dopo. Nessun markdown. Inizia con { e finisci con }.',
+      messages: [{ role: 'user', content: buildPrompt() }]
+    })
+  })
+  .then(function(resp) {
+    clearInterval(iv);
+    if(!resp.ok) {
+      return resp.json().then(function(e) { throw new Error((e.error && e.error.message) || 'Errore API ' + resp.status); });
+    }
+    return resp.json();
+  })
+  .then(function(data) {
+    var text = data.content[0].text;
+    var json = parseJSON(text);
+    if(!json) throw new Error('Risposta non valida. Primi 100 caratteri: ' + text.slice(0,100));
+    try { localStorage.setItem('bpm_last', JSON.stringify(json)); } catch(e) {}
+    render(json);
+  })
+  .catch(function(err) {
+    clearInterval(iv);
+    showError(err.message);
+  });
+}
+
+function badge(label, tipo) {
+  return '<span class="badge b-' + (tipo||'neu') + '">' + label + '</span>';
+}
+
+function render(d) {
+  qs('stateLoading').style.display = 'none';
+  qs('stateEmpty').style.display = 'none';
+  Object.keys(charts).forEach(function(k) { try { charts[k].destroy(); } catch(e) {} });
+  charts = {};
+
+  var az = d.azienda || {};
+  var kpis = d.kpi || [];
+  var trend = d.trend || {};
+  var mv = d.mappa_valore || [];
+  var rna = d.rna || {};
+  var flags = d.red_flags || [];
+  var prios = d.priorita || [];
+  var domande = d.domande_call || [];
+
+  var h = '';
 
   // HEADER
-  html += `<div class="dash-header">
-    <div class="dash-company">${az.ragione||'Prospect'}</div>
-    <div class="dash-meta">${[az.settore,az.sede,az.dipendenti?az.dipendenti+' dip.':'',az.anno?'Bilancio '+az.anno:''].filter(Boolean).join(' · ')}</div>
-    ${az.sintesi?`<div class="dash-sintesi">${az.sintesi}</div>`:''}
-    <div class="dash-badges">${(az.badges||[]).map(b=>`<span class="badge badge-${b.tipo}">${b.label}</span>`).join('')}</div>
-  </div>`;
+  h += '<div class="card">';
+  h += '<div style="font-size:20px;font-weight:700;">' + (az.ragione||'Prospect') + '</div>';
+  h += '<div style="font-size:13px;color:var(--text2);margin-top:3px;">' + [az.settore,az.sede,az.dipendenti?az.dipendenti+' dip.':'',az.anno?'Bilancio '+az.anno:''].filter(Boolean).join(' · ') + '</div>';
+  if(az.sintesi) h += '<div style="font-size:13px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">' + az.sintesi + '</div>';
+  if(az.badges && az.badges.length) {
+    h += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">';
+    az.badges.forEach(function(b) { h += badge(b.label, b.tipo); });
+    h += '</div>';
+  }
+  h += '</div>';
 
   // KPI
   if(kpis.length) {
-    html += `<div><div class="section-title">Snapshot finanziario</div><div class="kpi-grid">
-      ${kpis.map(k=>`<div class="kpi">
-        <div class="kpi-label">${k.label}</div>
-        <div class="kpi-value" style="${k.trend==='neg'?'color:var(--ko)':k.trend==='pos'?'color:var(--ok)':''}">${k.valore}</div>
-        <div class="kpi-delta delta-${k.trend==='pos'?'pos':k.trend==='neg'?'neg':'neu'}">${k.delta}</div>
-      </div>`).join('')}
-    </div></div>`;
+    h += '<div><div class="sec">Snapshot finanziario</div><div class="kgrid">';
+    kpis.forEach(function(k) {
+      var col = k.trend==='neg' ? 'color:var(--ko)' : k.trend==='pos' ? 'color:var(--ok)' : '';
+      h += '<div class="kpi"><div class="kpi-l">' + k.label + '</div>';
+      h += '<div class="kpi-v" style="' + col + '">' + k.valore + '</div>';
+      h += '<div class="kpi-d ' + (k.trend==='pos'?'pos':k.trend==='neg'?'neg':'neu') + '">' + k.delta + '</div></div>';
+    });
+    h += '</div></div>';
   }
 
-  // TREND
-  const hasData = trend.ricavi && trend.ricavi.some(v=>v!==null&&v!==undefined);
-  if(hasData) {
-    html += `<div class="card">
-      <div class="section-title">Andamento triennale</div>
-      <div class="legend">
-        <span><span class="legend-sq" style="background:#378ADD;"></span>Ricavi</span>
-        <span><span class="legend-sq" style="background:#1D9E75;"></span>EBITDA</span>
-        <span><span class="legend-sq" style="background:#E24B4A;"></span>Risultato netto</span>
-      </div>
-      <div class="chart-wrap" style="height:220px;"><canvas id="trendChart"></canvas></div>
-    </div>`;
+  // TREND CHART
+  var hasChart = trend.ricavi && trend.ricavi.some(function(v){return v!==null&&v!==undefined;});
+  if(hasChart) {
+    h += '<div class="card"><div class="sec">Andamento triennale</div>';
+    h += '<div style="display:flex;gap:12px;margin-bottom:8px;font-size:12px;color:var(--text2);">';
+    h += '<span><span style="display:inline-block;width:9px;height:9px;background:#378ADD;border-radius:2px;margin-right:4px;"></span>Ricavi</span>';
+    h += '<span><span style="display:inline-block;width:9px;height:9px;background:#1D9E75;border-radius:2px;margin-right:4px;"></span>EBITDA</span>';
+    h += '<span><span style="display:inline-block;width:9px;height:9px;background:#E24B4A;border-radius:2px;margin-right:4px;"></span>Risultato</span>';
+    h += '</div><div style="position:relative;height:220px;"><canvas id="trendChart"></canvas></div></div>';
   }
 
   // MAPPA VALORE
   if(mv.length) {
-    html += `<div><div class="section-title">Mappa del valore Leyton</div><div class="value-map">
-      ${mv.map(a=>`<div class="value-card ${a.potenziale||'nc'}">
-        <div class="value-card-header">
-          <span class="value-card-name">${a.area}</span>
-          <span class="badge badge-${a.badge_tipo||'neu'}" style="font-size:11px;">${a.badge_label||a.potenziale}</span>
-        </div>
-        <div class="value-card-body">${a.rationale||''}
-          ${a.prerequisiti?`<div class="prereq">⚑ ${a.prerequisiti}</div>`:''}
-        </div>
-        ${a.stima&&a.stima!=='—'&&a.stima!=='n.d.'?`<div class="value-card-est ${a.potenziale||'basso'}">${a.stima}</div>`:''}
-      </div>`).join('')}
-    </div></div>`;
+    h += '<div><div class="sec">Mappa del valore Leyton</div><div class="vgrid">';
+    mv.forEach(function(a) {
+      h += '<div class="vc ' + (a.potenziale||'nc') + '">';
+      h += '<div class="vc-head"><span class="vc-name">' + a.area + '</span>' + badge(a.badge_label||a.potenziale, a.badge_tipo||'neu') + '</div>';
+      h += '<div class="vc-body">' + (a.rationale||'');
+      if(a.prerequisiti) h += '<div class="vc-pre">⚑ ' + a.prerequisiti + '</div>';
+      h += '</div>';
+      if(a.stima && a.stima!=='n.d.' && a.stima!=='—') h += '<div class="vc-est ' + (a.potenziale||'basso') + '">' + a.stima + '</div>';
+      h += '</div>';
+    });
+    h += '</div></div>';
   }
 
-  // NOTA IRES/IRAP
+  // IRES/IRAP
   if(d.nota_ires_irap) {
-    html += `<div class="note-box note-info"><strong>IRES/IRAP — legame con le agevolazioni:</strong> ${d.nota_ires_irap}</div>`;
+    h += '<div class="note note-i"><strong>IRES/IRAP:</strong> ' + d.nota_ires_irap + '</div>';
   }
 
   // RNA
-  if(rna.aiuti&&rna.aiuti.length) {
-    html += `<div class="card"><div class="section-title">Registro Nazionale Aiuti</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
-        <div class="kpi" style="flex:1;min-width:100px;"><div class="kpi-label">Importo nominale</div><div class="kpi-value" style="font-size:15px;">${rna.totale_nominale||'—'}</div></div>
-        <div class="kpi" style="flex:1;min-width:100px;"><div class="kpi-label">Elemento aiuto</div><div class="kpi-value" style="font-size:15px;">${rna.totale_elemento||'—'}</div></div>
-        <div class="kpi" style="flex:1;min-width:100px;"><div class="kpi-label">N. aiuti (5 anni)</div><div class="kpi-value" style="font-size:15px;">${rna.n_aiuti||'—'}</div></div>
-      </div>
-      ${rna.allarme_de_minimis?`<div class="note-box note-warn" style="margin-bottom:10px;"><strong>⚠ Soglia De Minimis:</strong> ${rna.nota_de_minimis}</div>`:''}
-      <div class="table-wrap"><table>
-        <thead><tr><th>Framework</th><th>N.</th><th class="td-r">Importo</th><th>Stato</th><th>Note</th></tr></thead>
-        <tbody>${rna.aiuti.map(a=>`<tr>
-          <td>${a.framework}</td><td>${a.n_aiuti}</td>
-          <td class="td-r">${a.importo}</td>
-          <td><span class="badge badge-${a.stato||'neu'}" style="font-size:11px;">${a.stato==='ok'?'Attivo':a.stato==='warn'?'Attenzione':a.stato==='ko'?'Rischio':'—'}</span></td>
-          <td style="font-size:12px;color:var(--text2);">${a.nota||''}</td>
-        </tr>`).join('')}</tbody>
-      </table></div>
-    </div>`;
+  if(rna.aiuti && rna.aiuti.length) {
+    h += '<div class="card"><div class="sec">Registro Nazionale Aiuti</div>';
+    h += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">';
+    h += '<div class="kpi" style="flex:1;min-width:100px;"><div class="kpi-l">Importo nominale</div><div class="kpi-v" style="font-size:15px;">' + (rna.totale_nominale||'—') + '</div></div>';
+    h += '<div class="kpi" style="flex:1;min-width:100px;"><div class="kpi-l">Elemento aiuto</div><div class="kpi-v" style="font-size:15px;">' + (rna.totale_elemento||'—') + '</div></div>';
+    h += '<div class="kpi" style="flex:1;min-width:100px;"><div class="kpi-l">N. aiuti (5 anni)</div><div class="kpi-v" style="font-size:15px;">' + (rna.n_aiuti||'—') + '</div></div>';
+    h += '</div>';
+    if(rna.allarme_de_minimis) h += '<div class="note note-w" style="margin-bottom:10px;"><strong>⚠ De Minimis:</strong> ' + rna.nota_de_minimis + '</div>';
+    h += '<table><thead><tr><th>Framework</th><th>N.</th><th class="tr">Importo</th><th>Stato</th><th>Note</th></tr></thead><tbody>';
+    rna.aiuti.forEach(function(a) {
+      var stato = a.stato==='ok'?'Attivo':a.stato==='warn'?'Attenzione':a.stato==='ko'?'Rischio':'—';
+      h += '<tr><td>' + a.framework + '</td><td>' + a.n_aiuti + '</td><td class="tr">' + a.importo + '</td><td>' + badge(stato, a.stato||'neu') + '</td><td style="font-size:12px;color:var(--text2);">' + (a.nota||'') + '</td></tr>';
+    });
+    h += '</tbody></table></div>';
   }
 
   // RED FLAGS
   if(flags.length) {
-    html += `<div><div class="section-title">Red flag</div><div class="flag-list">
-      ${flags.map(f=>`<div class="flag-item">
-        <div class="flag-dot ${f.gravita||'warn'}"></div>
-        <div class="flag-text"><strong>${f.titolo} — </strong>${f.descrizione}</div>
-      </div>`).join('')}
-    </div></div>`;
+    h += '<div><div class="sec">Red flag</div><div class="fl">';
+    flags.forEach(function(f) {
+      h += '<div class="fi"><div class="fd ' + (f.gravita||'warn') + '"></div><div class="ft"><strong>' + f.titolo + ' — </strong>' + f.descrizione + '</div></div>';
+    });
+    h += '</div></div>';
   }
 
   // PRIORITÀ
   if(prios.length) {
-    html += `<div><div class="section-title">Priorità commerciali Leyton</div><div class="priority-list">
-      ${prios.map(p=>`<div class="prio-item p${Math.min(p.rank,4)}">
-        <div class="prio-rank">${p.rank}</div>
-        <div style="flex:1;">
-          <div class="prio-title">${p.area} — ${p.titolo}</div>
-          <div class="prio-desc">${p.descrizione}</div>
-          ${p.argomento_chiave?`<div class="prio-desc" style="margin-top:6px;"><strong>Argomento chiave:</strong> ${p.argomento_chiave}</div>`:''}
-          <div style="margin-top:8px;"><span class="badge badge-${p.badge_tipo||'neu'}" style="font-size:11px;">${p.badge_label}</span></div>
-        </div>
-      </div>`).join('')}
-    </div></div>`;
+    h += '<div><div class="sec">Priorità commerciali Leyton</div><div class="pl">';
+    prios.forEach(function(p) {
+      var r = Math.min(p.rank, 4);
+      h += '<div class="pi r' + r + '"><div class="pr">' + p.rank + '</div><div style="flex:1;">';
+      h += '<div class="pt">' + p.area + ' — ' + p.titolo + '</div>';
+      h += '<div class="pd">' + p.descrizione + '</div>';
+      if(p.argomento_chiave) h += '<div class="pd" style="margin-top:5px;"><strong>Argomento chiave:</strong> ' + p.argomento_chiave + '</div>';
+      h += '<div style="margin-top:7px;">' + badge(p.badge_label, p.badge_tipo||'neu') + '</div>';
+      h += '</div></div>';
+    });
+    h += '</div></div>';
   }
 
   // DOMANDE CALL
   if(domande.length) {
-    html += `<div class="card"><div class="section-title">Domande chiave per il call</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th style="width:120px;">Area</th><th>Domanda</th></tr></thead>
-        <tbody>${domande.map(d=>`<tr><td style="font-weight:600;color:var(--accent);">${d.area}</td><td>${d.domanda}</td></tr>`).join('')}</tbody>
-      </table></div>
-    </div>`;
+    h += '<div class="card"><div class="sec">Domande chiave per il call</div><table><thead><tr><th style="width:120px;">Area</th><th>Domanda</th></tr></thead><tbody>';
+    domande.forEach(function(d) {
+      h += '<tr><td style="font-weight:600;color:var(--accent);">' + d.area + '</td><td>' + d.domanda + '</td></tr>';
+    });
+    h += '</tbody></table></div>';
   }
 
-  html += `<div class="dash-footer">BPM Dashboard Leyton Italia · ${az.ragione||'Prospect'} · ${new Date().toLocaleDateString('it-IT')} · Uso interno</div>`;
+  h += '<div class="foot">BPM Dashboard Leyton Italia · ' + (az.ragione||'Prospect') + ' · ' + new Date().toLocaleDateString('it-IT') + ' · Uso interno</div>';
 
-  el.innerHTML = html;
+  var el = qs('stateResult');
+  el.innerHTML = h;
+  el.style.display = 'flex';
+  el.style.flexDirection = 'column';
+  el.style.gap = '14px';
 
   // CHART
-  if(hasData) {
-    setTimeout(() => {
-      const canvas = document.getElementById('trendChart');
+  if(hasChart) {
+    setTimeout(function() {
+      var canvas = qs('trendChart');
       if(!canvas) return;
-      chartInstances['trend'] = new Chart(canvas, {
+      charts['trend'] = new Chart(canvas, {
         type: 'bar',
         data: {
-          labels: trend.labels||['Y-2','Y-1','Y'],
+          labels: trend.labels || ['Y-2','Y-1','Y'],
           datasets: [
-            {label:'Ricavi',data:trend.ricavi,backgroundColor:'#378ADD'},
-            {label:'EBITDA',data:trend.ebitda,backgroundColor:'#1D9E75'},
-            {label:'Risultato netto',data:trend.utile,backgroundColor:'#E24B4A'}
+            {label:'Ricavi', data:trend.ricavi, backgroundColor:'#378ADD'},
+            {label:'EBITDA', data:trend.ebitda, backgroundColor:'#1D9E75'},
+            {label:'Risultato', data:trend.utile, backgroundColor:'#E24B4A'}
           ]
         },
         options: {
           responsive:true, maintainAspectRatio:false,
-          plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': €'+Math.round(ctx.parsed.y).toLocaleString('it-IT')+'k'}}},
-          scales:{
-            x:{grid:{display:false},border:{display:false}},
-            y:{ticks:{callback:v=>'€'+v.toLocaleString('it-IT')+'k',font:{size:11}},border:{display:false},grid:{color:'rgba(0,0,0,0.05)'}}
-          }
+          plugins:{legend:{display:false}},
+          scales:{x:{grid:{display:false}},y:{border:{display:false}}}
         }
       });
-    }, 150);
+    }, 100);
   }
 }
+
+// INIT
+window.addEventListener('load', function() {
+  load();
+  qs('btnAnalizza').addEventListener('click', runAnalysis);
+  qs('btnCancella').addEventListener('click', clearAll);
+  qs('btnPDF').addEventListener('click', function() { window.print(); });
+  qs('apiKey').addEventListener('input', function() {
+    try { localStorage.setItem('bpm_key', this.value); } catch(e) {}
+  });
+  ['ragione','sede','settore','dipendenti','annoBilancio','docBilancio','datiRNA','datiIP','altreInfo'].forEach(function(id) {
+    var el = qs(id);
+    if(el) el.addEventListener('input', save);
+  });
+});
+
+})();
 </script>
 </body>
 </html>
