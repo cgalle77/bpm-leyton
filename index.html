@@ -380,8 +380,13 @@ async function analizza() {
     }
     const data = await resp.json();
     const text = data.content[0].text;
+    console.log("BPM_RAW:", text.slice(0,500));
+    localStorage.setItem("bpm_raw_debug", text.slice(0,3000));
     const json = extractJSON(text);
-    if(!json) throw new Error('Risposta non interpretabile. Riprova o aggiungi più dati.');
+    if(!json) {
+      const preview = text.slice(0,120).replace(/</g,"&lt;");
+      throw new Error("Parsing fallito. Risposta ricevuta: " + preview);
+    }
     localStorage.setItem('bpm_last_v2', JSON.stringify(json));
     renderDashboard(json);
   } catch(e) {
