@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BPM Dashboard — Leyton Italia</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+/* ===== RESET & BASE ===== */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f7f6f3;--bg2:#ffffff;--bg3:#f0efe9;--bg4:#e8e7e0;
+  --text:#1a1a18;--text2:#5a5955;--text3:#8a8880;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+  --ok:#1D9E75;--ok-bg:#e1f5ee;--ok-t:#085041;
+  --warn:#BA7517;--warn-bg:#faeeda;--warn-t:#633806;
+  --ko:#D85A30;--ko-bg:#faece7;--ko-t:#4A1B0C;
+  --info:#185FA5;--info-bg:#e6f1fb;--info-t:#042C53;
+  --neu-bg:#f0efe9;--neu-t:#444441;
+  --accent:#185FA5;
+  --r-sm:6px;--r-md:8px;--r-lg:14px;
+  --shadow:0 1px 4px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg:0 4px 16px rgba(0,0,0,0.09),0 1px 4px rgba(0,0,0,0.05);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh;}
+
+/* ===== LAYOUT ===== */
+.app{display:grid;grid-template-columns:400px 1fr;grid-template-rows:auto 1fr;min-height:100vh;}
+.topbar{grid-column:1/-1;background:var(--bg2);border-bottom:0.5px solid var(--border2);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:var(--shadow);}
+.topbar-left{display:flex;align-items:center;gap:14px;}
+.logo{font-size:16px;font-weight:700;color:var(--accent);letter-spacing:-.3px;}
+.logo span{color:var(--text3);font-weight:400;}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r-md);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#0f4d8a;}
+.btn-primary:disabled{background:#b4b2a9;cursor:not-allowed;}
+.btn-danger{background:var(--ko-bg);color:var(--ko-t);border:0.5px solid rgba(216,90,48,0.2);}
+.btn-danger:hover{background:#f5c4b3;}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:0.5px solid var(--border);}
+.btn-ghost:hover{background:var(--bg4);}
+.btn-pdf{background:var(--ok-bg);color:var(--ok-t);border:0.5px solid rgba(29,158,117,0.2);}
+.btn-pdf:hover{background:#9FE1CB;}
+
+/* ===== LEFT PANEL (INPUT) ===== */
+.input-panel{background:var(--bg2);border-right:0.5px solid var(--border2);overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;}
+.panel-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+
+.field-group{display:flex;flex-direction:column;gap:4px;}
+.field-group label{font-size:12px;color:var(--text2);font-weight:500;}
+.field-group input,.field-group select,.field-group textarea{
+  width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r-md);
+  font-size:13px;color:var(--text);background:var(--bg);
+  font-family:inherit;resize:vertical;outline:none;transition:border .15s;
+}
+.field-group input:focus,.field-group select:focus,.field-group textarea:focus{border-color:var(--accent);}
+.field-group textarea{min-height:80px;line-height:1.5;}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+.section-block{background:var(--bg3);border-radius:var(--r-lg);padding:14px 16px;border:0.5px solid var(--border);}
+
+.api-row{display:flex;gap:8px;align-items:center;}
+.api-row input{flex:1;}
+.api-status{font-size:11px;padding:3px 8px;border-radius:4px;white-space:nowrap;}
+.api-ok{background:var(--ok-bg);color:var(--ok-t);}
+.api-err{background:var(--ko-bg);color:var(--ko-t);}
+
+/* ===== RIGHT PANEL (DASHBOARD) ===== */
+.dashboard{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 20px;color:var(--text3);text-align:center;flex:1;}
+.empty-state svg{opacity:.3;}
+.empty-state h3{font-size:16px;font-weight:500;color:var(--text2);}
+.empty-state p{font-size:13px;max-width:340px;line-height:1.6;}
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:80px 20px;color:var(--text2);}
+.spinner{width:32px;height:32px;border:3px solid var(--bg4);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-msg{font-size:14px;color:var(--text2);}
+
+/* DASHBOARD ELEMENTS */
+.dash-header{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;box-shadow:var(--shadow);}
+.dash-company{font-size:20px;font-weight:700;color:var(--text);}
+.dash-meta{font-size:13px;color:var(--text2);margin-top:3px;}
+.dash-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--r-md);font-size:12px;font-weight:500;}
+.badge-ok{background:var(--ok-bg);color:var(--ok-t);}
+.badge-warn{background:var(--warn-bg);color:var(--warn-t);}
+.badge-ko{background:var(--ko-bg);color:var(--ko-t);}
+.badge-info{background:var(--info-bg);color:var(--info-t);}
+.badge-neu{background:var(--neu-bg);color:var(--neu-t);}
+
+.section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;}
+.kpi{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--shadow);}
+.kpi-label{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.kpi-value{font-size:20px;font-weight:700;color:var(--text);}
+.kpi-delta{font-size:11px;margin-top:2px;}
+.delta-neg{color:var(--ko);}
+.delta-pos{color:var(--ok);}
+.delta-neu{color:var(--text3);}
+
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--shadow);}
+
+/* MAPPA VALORE */
+.value-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.value-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.value-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.value-card.alto::before{background:var(--ok);}
+.value-card.medio::before{background:var(--warn);}
+.value-card.basso::before{background:var(--text3);}
+.value-card.nc::before{background:var(--bg4);}
+.value-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.value-card-name{font-size:14px;font-weight:600;color:var(--text);}
+.value-card-body{font-size:12px;color:var(--text2);line-height:1.55;}
+.value-card-body strong{font-weight:600;color:var(--text);}
+.value-card-est{margin-top:8px;font-size:13px;font-weight:700;}
+.value-card-est.alto{color:var(--ok);}
+.value-card-est.medio{color:var(--warn);}
+.value-card-est.basso{color:var(--text3);}
+
+/* TABELLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:var(--bg3);font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;text-align:left;border-bottom:0.5px solid var(--border2);}
+td{padding:9px 12px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+tr.total-row td{font-weight:600;background:var(--bg3);}
+.td-right{text-align:right;}
+
+/* FLAGS */
+.flag-list{display:flex;flex-direction:column;gap:8px;}
+.flag-item{display:flex;gap:10px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-md);padding:12px 14px;box-shadow:var(--shadow);}
+.flag-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.flag-dot.ko{background:var(--ko);}
+.flag-dot.warn{background:var(--warn);}
+.flag-text{font-size:13px;color:var(--text2);line-height:1.6;}
+.flag-text strong{color:var(--text);font-weight:600;}
+
+/* PRIORITÀ */
+.priority-list{display:flex;flex-direction:column;gap:10px;}
+.prio-item{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;display:flex;gap:14px;box-shadow:var(--shadow);}
+.prio-item.p1{border-left:3px solid var(--ok);}
+.prio-item.p2{border-left:3px solid var(--warn);}
+.prio-item.p3{border-left:3px solid var(--info);}
+.prio-item.p4{border-left:3px solid var(--text3);}
+.prio-rank{font-size:22px;font-weight:700;color:var(--text3);min-width:24px;line-height:1.2;}
+.prio-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.prio-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+
+/* CHARTS */
+.chart-wrap{position:relative;width:100%;}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px;font-size:12px;color:var(--text2);}
+.legend span{display:flex;align-items:center;gap:4px;}
+.legend-sq{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+
+/* NOTE BOX */
+.note-box{border-radius:var(--r-md);padding:11px 14px;font-size:13px;line-height:1.6;margin-top:6px;}
+.note-warn{background:var(--warn-bg);color:var(--warn-t);border:0.5px solid rgba(186,117,23,0.25);}
+.note-ok{background:var(--ok-bg);color:var(--ok-t);border:0.5px solid rgba(29,158,117,0.25);}
+.note-info{background:var(--info-bg);color:var(--info-t);border:0.5px solid rgba(24,95,165,0.25);}
+
+/* DOMANDE CALL */
+.domande-table td:first-child{font-weight:600;color:var(--accent);white-space:nowrap;width:120px;}
+
+/* FOOTER */
+.dash-footer{text-align:center;font-size:11px;color:var(--text3);padding:8px 0 4px;border-top:0.5px solid var(--border);margin-top:4px;}
+
+/* ===== PRINT / PDF ===== */
+@media print{
+  body{background:#fff;}
+  .topbar .topbar-right,.input-panel,.btn{display:none!important;}
+  .app{display:block;}
+  .topbar{box-shadow:none;border-bottom:1px solid #ccc;padding:10px 20px;}
+  .dashboard{padding:12px;gap:12px;overflow:visible;}
+  .card,.kpi,.value-card,.flag-item,.prio-item{box-shadow:none;break-inside:avoid;}
+  .value-map{grid-template-columns:repeat(3,1fr);}
+  .kpi-grid{grid-template-columns:repeat(4,1fr);}
+  @page{margin:15mm;size:A4;}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">LEYTON <span>BPM Dashboard</span></div>
+    <div id="apiStatusBadge"></div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-danger" onclick="clearAll()">🗑 Cancella</button>
+    <button class="btn btn-primary" id="btnAnalizza" onclick="analizza()" disabled>⚡ Analizza</button>
+    <button class="btn btn-pdf" onclick="window.print()">📄 Genera PDF</button>
+  </div>
+</div>
+
+<!-- LEFT: INPUT PANEL -->
+<div class="input-panel" id="inputPanel">
+
+  <!-- API KEY -->
+  <div class="section-block">
+    <div class="panel-title">🔑 API Key Anthropic</div>
+    <div class="api-row">
+      <input type="password" id="apiKey" placeholder="sk-ant-..." oninput="saveApiKey(this.value)" />
+      <span id="apiStatus" class="api-status" style="display:none"></span>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:5px;">Salvata localmente nel browser. Non viene mai trasmessa altrove.</div>
+  </div>
+
+  <!-- ANAGRAFICA -->
+  <div class="section-block">
+    <div class="panel-title">🏢 Anagrafica azienda</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="field-group"><label>Ragione sociale</label><input type="text" id="ragione" placeholder="Es. Bieffe Project SRL" oninput="autosave()" /></div>
+      <div class="grid-2">
+        <div class="field-group"><label>Sede / Provincia</label><input type="text" id="sede" placeholder="Es. Bologna (BO)" oninput="autosave()" /></div>
+        <div class="field-group"><label>Settore ATECO</label><input type="text" id="settore" placeholder="Es. 71.12 – Ingegneria" oninput="autosave()" /></div>
+      </div>
+      <div class="grid-2">
+        <div class="field-group"><label>N. dipendenti</label><input type="number" id="dipendenti" placeholder="49" oninput="autosave()" /></div>
+        <div class="field-group"><label>Anno bilancio</label><input type="number" id="annoBilancio" placeholder="2024" oninput="autosave()" /></div>
+      </div>
+      <div class="field-group"><label>Note aggiuntive (struttura, gruppo, sedi)</label><textarea id="noteAnagrafica" rows="2" placeholder="Es. non appartiene a nessun gruppo, unica sede..." oninput="autosave()"></textarea></div>
+    </div>
+  </div>
+
+  <!-- BILANCIO -->
+  <div class="section-block">
+    <div class="panel-title">📊 Dati bilancio (€ in migliaia)</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="font-size:11px;color:var(--text3);">Anno corrente (Y)</div>
+      <div class="grid-3">
+        <div class="field-group"><label>Ricavi netti</label><input type="number" id="ricaviY" placeholder="2836" oninput="autosave()" /></div>
+        <div class="field-group"><label>EBITDA</label><input type="number" id="ebitdaY" placeholder="53" oninput="autosave()" /></div>
+        <div class="field-group"><label>Risultato netto</label><input type="number" id="utileY" placeholder="-209" oninput="autosave()" /></div>
+      </div>
+      <div class="grid-3">
+        <div class="field-group"><label>Costo lavoro</label><input type="number" id="costoLavoroY" placeholder="2631" oninput="autosave()" /></div>
+        <div class="field-group"><label>Patrimonio netto</label><input type="number" id="pnY" placeholder="635" oninput="autosave()" /></div>
+        <div class="field-group"><label>Debiti finanziari</label><input type="number" id="debitiFinY" placeholder="1297" oninput="autosave()" /></div>
+      </div>
+      <div class="grid-3">
+        <div class="field-group"><label>Immob. immateriali</label><input type="number" id="immImmY" placeholder="2466" oninput="autosave()" /></div>
+        <div class="field-group"><label>Immob. materiali</label><input type="number" id="immMatY" placeholder="394" oninput="autosave()" /></div>
+        <div class="field-group"><label>Liquidità</label><input type="number" id="liquiditaY" placeholder="314" oninput="autosave()" /></div>
+      </div>
+      <div class="grid-3">
+        <div class="field-group"><label>IRES corrente</label><input type="number" id="iresY" placeholder="0" oninput="autosave()" /></div>
+        <div class="field-group"><label>IRAP corrente</label><input type="number" id="irapY" placeholder="19" oninput="autosave()" /></div>
+        <div class="field-group"><label>Oneri finanziari</label><input type="number" id="oneriFinY" placeholder="57" oninput="autosave()" /></div>
+      </div>
+
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Anno precedente (Y-1)</div>
+      <div class="grid-3">
+        <div class="field-group"><label>Ricavi netti</label><input type="number" id="ricaviY1" placeholder="5287" oninput="autosave()" /></div>
+        <div class="field-group"><label>EBITDA</label><input type="number" id="ebitdaY1" placeholder="590" oninput="autosave()" /></div>
+        <div class="field-group"><label>Risultato netto</label><input type="number" id="utileY1" placeholder="159" oninput="autosave()" /></div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Due anni fa (Y-2)</div>
+      <div class="grid-3">
+        <div class="field-group"><label>Ricavi netti</label><input type="number" id="ricaviY2" placeholder="3927" oninput="autosave()" /></div>
+        <div class="field-group"><label>EBITDA</label><input type="number" id="ebitdaY2" placeholder="637" oninput="autosave()" /></div>
+        <div class="field-group"><label>Risultato netto</label><input type="number" id="utileY2" placeholder="238" oninput="autosave()" /></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOCUMENTI LIBERI -->
+  <div class="section-block">
+    <div class="panel-title">📄 Documenti e informazioni aggiuntive</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="field-group">
+        <label>Nota integrativa / Relazione gestione (incolla il testo)</label>
+        <textarea id="notaIntegrativa" rows="6" placeholder="Incolla qui il testo della nota integrativa, relazione sulla gestione, o qualsiasi altra informazione rilevante..." oninput="autosave()"></textarea>
+      </div>
+      <div class="field-group">
+        <label>Dati RNA / Aiuti di Stato (incolla da portale)</label>
+        <textarea id="datiRNA" rows="4" placeholder="Incolla qui i dati sugli aiuti di stato ricevuti (dal portale RNA o altro)..." oninput="autosave()"></textarea>
+      </div>
+      <div class="field-group">
+        <label>Informazioni IP (brevetti, marchi, modelli, software)</label>
+        <textarea id="datiIP" rows="3" placeholder="Es. brevetti registrati, marchi depositati, software sviluppato internamente, disegni/modelli..." oninput="autosave()"></textarea>
+      </div>
+      <div class="field-group">
+        <label>Altre informazioni (news, sito web, LinkedIn, ecc.)</label>
+        <textarea id="altreInfo" rows="3" placeholder="Qualsiasi informazione aggiuntiva utile per l'analisi..." oninput="autosave()"></textarea>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- RIGHT: DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <div class="empty-state" id="emptyState">
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><rect x="8" y="8" width="48" height="48" rx="8" stroke="#8a8880" stroke-width="2"/><path d="M20 36l8-8 8 8 8-12" stroke="#8a8880" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="44" cy="20" r="3" stroke="#8a8880" stroke-width="2"/></svg>
+    <h3>Inserisci i dati e premi Analizza</h3>
+    <p>Compila il form a sinistra con i dati del prospect — bilancio, nota integrativa, informazioni IP e RNA — poi premi <strong>⚡ Analizza</strong> per generare il cruscotto BPM completo.</p>
+  </div>
+  <div id="loadingState" style="display:none;">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-msg" id="loadingMsg">Analisi in corso...</div>
+    </div>
+  </div>
+  <div id="dashContent" style="display:none;"></div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// ===== STATO =====
+let chartInstances = {};
+
+// ===== INIT =====
+window.onload = function() {
+  loadAll();
+  updateAnalizzaBtn();
+};
+
+// ===== STORAGE =====
+function autosave() {
+  const fields = ['ragione','sede','settore','dipendenti','annoBilancio','noteAnagrafica',
+    'ricaviY','ebitdaY','utileY','costoLavoroY','pnY','debitiFinY','immImmY','immMatY','liquiditaY','iresY','irapY','oneriFinY',
+    'ricaviY1','ebitdaY1','utileY1','ricaviY2','ebitdaY2','utileY2',
+    'notaIntegrativa','datiRNA','datiIP','altreInfo'];
+  const data = {};
+  fields.forEach(f => { const el = document.getElementById(f); if(el) data[f] = el.value; });
+  localStorage.setItem('bpm_data', JSON.stringify(data));
+  updateAnalizzaBtn();
+}
+
+function saveApiKey(val) {
+  localStorage.setItem('bpm_apikey', val);
+  updateApiStatus(val);
+  updateAnalizzaBtn();
+}
+
+function loadAll() {
+  const saved = localStorage.getItem('bpm_data');
+  if(saved) {
+    const data = JSON.parse(saved);
+    Object.keys(data).forEach(k => {
+      const el = document.getElementById(k);
+      if(el) el.value = data[k];
+    });
+  }
+  const key = localStorage.getItem('bpm_apikey');
+  if(key) {
+    document.getElementById('apiKey').value = key;
+    updateApiStatus(key);
+  }
+  const lastResult = localStorage.getItem('bpm_last_result');
+  if(lastResult) {
+    renderDashboard(JSON.parse(lastResult));
+  }
+}
+
+function updateApiStatus(val) {
+  const el = document.getElementById('apiStatus');
+  const badge = document.getElementById('apiStatusBadge');
+  if(!val || val.length < 20) {
+    el.style.display='none';
+    badge.innerHTML='';
+    return;
+  }
+  el.style.display='inline';
+  if(val.startsWith('sk-ant-')) {
+    el.className='api-status api-ok'; el.textContent='✓ Key valida';
+    badge.innerHTML='<span class="badge badge-ok" style="font-size:11px;">API connessa</span>';
+  } else {
+    el.className='api-status api-err'; el.textContent='⚠ Formato errato';
+    badge.innerHTML='<span class="badge badge-ko" style="font-size:11px;">API non valida</span>';
+  }
+}
+
+function updateAnalizzaBtn() {
+  const key = localStorage.getItem('bpm_apikey') || document.getElementById('apiKey').value;
+  const ragione = document.getElementById('ragione').value;
+  const ricavi = document.getElementById('ricaviY').value;
+  const btn = document.getElementById('btnAnalizza');
+  btn.disabled = !(key && key.startsWith('sk-ant-') && (ragione || ricavi));
+}
+
+function clearAll() {
+  if(!confirm('Cancellare tutti i dati inseriti e il cruscotto?')) return;
+  const fields = ['ragione','sede','settore','dipendenti','annoBilancio','noteAnagrafica',
+    'ricaviY','ebitdaY','utileY','costoLavoroY','pnY','debitiFinY','immImmY','immMatY','liquiditaY','iresY','irapY','oneriFinY',
+    'ricaviY1','ebitdaY1','utileY1','ricaviY2','ebitdaY2','utileY2',
+    'notaIntegrativa','datiRNA','datiIP','altreInfo'];
+  fields.forEach(f => { const el = document.getElementById(f); if(el) el.value=''; });
+  localStorage.removeItem('bpm_data');
+  localStorage.removeItem('bpm_last_result');
+  document.getElementById('emptyState').style.display='flex';
+  document.getElementById('loadingState').style.display='none';
+  document.getElementById('dashContent').style.display='none';
+  Object.values(chartInstances).forEach(c => { try{c.destroy();}catch(e){} });
+  chartInstances = {};
+  updateAnalizzaBtn();
+}
+
+// ===== ANALISI API =====
+async function analizza() {
+  const apiKey = localStorage.getItem('bpm_apikey') || document.getElementById('apiKey').value;
+  if(!apiKey) { alert('Inserisci la API key Anthropic'); return; }
+
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('dashContent').style.display='none';
+  document.getElementById('loadingState').style.display='flex';
+
+  const msgs = ['Lettura dati bilancio...','Analisi mappa del valore Leyton...','Calcolo potenziale per area...','Valutazione RNA e aiuti di stato...','Identificazione red flag...','Definizione priorità commerciali...','Generazione cruscotto...'];
+  let mi = 0;
+  const interval = setInterval(() => {
+    mi = (mi+1) % msgs.length;
+    const el = document.getElementById('loadingMsg');
+    if(el) el.textContent = msgs[mi];
+  }, 1800);
+
+  const prompt = buildPrompt();
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'x-api-key': apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    clearInterval(interval);
+    if(!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error?.message || 'Errore API ' + resp.status);
+    }
+    const data = await resp.json();
+    const text = data.content[0].text;
+    const json = extractJSON(text);
+    if(!json) throw new Error('Risposta non valida dal modello. Riprova.');
+    localStorage.setItem('bpm_last_result', JSON.stringify(json));
+    renderDashboard(json);
+  } catch(e) {
+    clearInterval(interval);
+    document.getElementById('loadingState').style.display='none';
+    document.getElementById('emptyState').style.display='flex';
+    document.getElementById('emptyState').innerHTML = `
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="#D85A30" stroke-width="2"/><path d="M24 14v12M24 32v2" stroke="#D85A30" stroke-width="2" stroke-linecap="round"/></svg>
+      <h3 style="color:var(--ko);">Errore analisi</h3>
+      <p>${e.message}</p>
+      <button class="btn btn-ghost" onclick="location.reload()">Ricarica</button>
+    `;
+  }
+}
+
+function buildPrompt() {
+  const g = id => (document.getElementById(id)||{}).value || '';
+  const anno = g('annoBilancio') || 'anno corrente';
+  return `Sei il Business Performance Manager di Leyton Italia, esperto in agevolazioni fiscali italiane. 
+Analizza i dati di questo prospect e restituisci SOLO un oggetto JSON valido, senza testo prima o dopo, senza markdown.
+
+DATI PROSPECT:
+Ragione sociale: ${g('ragione')}
+Sede: ${g('sede')}
+Settore: ${g('settore')}
+Dipendenti: ${g('dipendenti')}
+Anno bilancio: ${anno}
+Note anagrafica: ${g('noteAnagrafica')}
+
+BILANCIO (€ migliaia):
+Anno ${anno}: Ricavi=${g('ricaviY')}, EBITDA=${g('ebitdaY')}, Utile/Perdita=${g('utileY')}, CostoLavoro=${g('costoLavoroY')}, PatrimonioNetto=${g('pnY')}, DebitiFinanziari=${g('debitiFinY')}, ImmobImmateriali=${g('immImmY')}, ImmobMateriali=${g('immMatY')}, Liquidita=${g('liquiditaY')}, IRES=${g('iresY')}, IRAP=${g('irapY')}, OneriFinanziari=${g('oneriFinY')}
+Anno Y-1: Ricavi=${g('ricaviY1')}, EBITDA=${g('ebitdaY1')}, Utile=${g('utileY1')}
+Anno Y-2: Ricavi=${g('ricaviY2')}, EBITDA=${g('ebitdaY2')}, Utile=${g('utileY2')}
+
+NOTA INTEGRATIVA / DOCUMENTI:
+${g('notaIntegrativa')}
+
+DATI RNA / AIUTI DI STATO:
+${g('datiRNA')}
+
+INFORMAZIONI IP:
+${g('datiIP')}
+
+ALTRE INFORMAZIONI:
+${g('altreInfo')}
+
+ISTRUZIONI ANALISI:
+- CIRS: aliquota 5% (2024), base = quota eleggibile costo lavoro tecnico + spese esterne R&S. NON usare aliquote maggiorate (non esistono dal 2024). Straordinarietà e trasferibilità NON sono criteri Manuale Oslo 2018 validi per CIRS.
+- Patent Box (D.L. 146/2021 nuovo regime): ammissibili SOLO brevetti, software tutelato da copyright, disegni/modelli registrati. MARCHI E KNOW-HOW NON AMMISSIBILI. Il nexus ratio NON esiste nel nuovo regime - NON menzionarlo mai.
+- Iperammortamento/Industria 4.0: verificare se beni in Allegato A o B L.232/2016. Software standalone non qualifica. Trademark e SaaS non qualificano.
+- IP: marchi (registrazione EUIPO/UIBM), brevetti (deposito, tutela, licenza), disegni/modelli registrati, software (copyright). Separato da Patent Box.
+- Grants: attenzione soglia De Minimis €300k triennale, verificare capienza.
+- ESG: sostenibilità, rendicontazione ESG, certificazioni ambientali/sociali.
+- Energy: audit energetici, efficienza, fonti rinnovabili, Fondo EnERgia.
+
+Restituisci questo JSON (tutti i campi obbligatori, anche se vuoti usa stringa vuota o array vuoto):
+{
+  "azienda": {
+    "ragione": "...",
+    "sede": "...",
+    "settore": "...",
+    "dipendenti": "...",
+    "anno": "...",
+    "sintesi": "frase di 2 righe che descrive l'azienda e il contesto",
+    "badges": [{"label":"...", "tipo":"ok|warn|ko|info|neu"}]
+  },
+  "kpi": [
+    {"label":"Ricavi netti","valore":"€Xk","delta":"...","trend":"pos|neg|neu"},
+    {"label":"EBITDA","valore":"€Xk","delta":"...","trend":"pos|neg|neu"},
+    {"label":"Risultato netto","valore":"€Xk","delta":"...","trend":"pos|neg|neu"},
+    {"label":"Patrimonio netto","valore":"€Xk","delta":"...","trend":"pos|neg|neu"},
+    {"label":"Costo lavoro","valore":"€Xk","delta":"...","trend":"pos|neg|neu"},
+    {"label":"IRES/IRAP","valore":"€Xk","delta":"...","trend":"pos|neg|neu"}
+  ],
+  "trend": {
+    "labels": ["Y-2","Y-1","Y"],
+    "ricavi": [num,num,num],
+    "ebitda": [num,num,num],
+    "utile": [num,num,num]
+  },
+  "mappa_valore": [
+    {
+      "area": "CIRS",
+      "potenziale": "alto|medio|basso|nc",
+      "stima": "€Xk–Yk",
+      "rationale": "motivazione in 3-4 righe con dati specifici dal bilancio",
+      "prerequisiti": "cosa verificare in call",
+      "badge_label": "...",
+      "badge_tipo": "ok|warn|neu|ko"
+    },
+    {"area":"Patent Box","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."},
+    {"area":"IP","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."},
+    {"area":"Iperammortamento 4.0/5.0","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."},
+    {"area":"Grants & Bandi","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."},
+    {"area":"ESG","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."},
+    {"area":"Energy","potenziale":"...","stima":"...","rationale":"...","prerequisiti":"...","badge_label":"...","badge_tipo":"..."}
+  ],
+  "rna": {
+    "totale_nominale": "€Xk",
+    "totale_elemento": "€Xk",
+    "n_aiuti": "...",
+    "allarme_de_minimis": true|false,
+    "nota_de_minimis": "...",
+    "aiuti": [
+      {"framework":"...","n_aiuti":"...","importo":"...","stato":"ok|warn|ko","nota":"..."}
+    ]
+  },
+  "red_flags": [
+    {"gravita":"ko|warn","titolo":"...","descrizione":"..."}
+  ],
+  "priorita": [
+    {
+      "rank": 1,
+      "area": "...",
+      "titolo": "...",
+      "descrizione": "...",
+      "argomento_chiave": "...",
+      "badge_label": "...",
+      "badge_tipo": "ok|warn|info|neu"
+    }
+  ],
+  "domande_call": [
+    {"area":"...","domanda":"..."}
+  ],
+  "nota_ires_irap": "paragrafo su IRES/IRAP, perdite fiscali, imposte anticipate, legame con benefici agevolativi"
+}`;
+}
+
+function extractJSON(text) {
+  try {
+    const clean = text.replace(/```json|```/g,'').trim();
+    const start = clean.indexOf('{');
+    const end = clean.lastIndexOf('}');
+    if(start === -1 || end === -1) return null;
+    return JSON.parse(clean.slice(start, end+1));
+  } catch(e) { return null; }
+}
+
+// ===== RENDER DASHBOARD =====
+function renderDashboard(d) {
+  document.getElementById('loadingState').style.display='none';
+  document.getElementById('emptyState').style.display='none';
+  const el = document.getElementById('dashContent');
+  el.style.display='flex';
+  el.style.flexDirection='column';
+  el.style.gap='16px';
+
+  Object.values(chartInstances).forEach(c => { try{c.destroy();}catch(e){} });
+  chartInstances = {};
+
+  const az = d.azienda || {};
+  const kpis = d.kpi || [];
+  const trend = d.trend || {};
+  const mv = d.mappa_valore || [];
+  const rna = d.rna || {};
+  const flags = d.red_flags || [];
+  const prios = d.priorita || [];
+  const domande = d.domande_call || [];
+
+  let html = '';
+
+  // HEADER
+  html += `<div class="dash-header">
+    <div class="dash-company">${az.ragione||'Prospect'}</div>
+    <div class="dash-meta">${[az.settore,az.sede,az.dipendenti?az.dipendenti+' dip.':'',az.anno?'Bilancio '+az.anno:''].filter(Boolean).join(' · ')}</div>
+    ${az.sintesi ? `<div style="font-size:13px;color:var(--text2);margin-top:6px;">${az.sintesi}</div>` : ''}
+    <div class="dash-badges">
+      ${(az.badges||[]).map(b=>`<span class="badge badge-${b.tipo}">${b.label}</span>`).join('')}
+    </div>
+  </div>`;
+
+  // KPI
+  html += `<div><div class="section-title">Snapshot finanziario</div><div class="kpi-grid">
+    ${kpis.map(k=>`<div class="kpi">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value" style="${k.trend==='neg'?'color:var(--ko)':k.trend==='pos'?'color:var(--ok)':''}">${k.valore}</div>
+      <div class="kpi-delta delta-${k.trend==='pos'?'pos':k.trend==='neg'?'neg':'neu'}">${k.delta}</div>
+    </div>`).join('')}
+  </div></div>`;
+
+  // TREND CHART
+  if(trend.ricavi && trend.ricavi.length) {
+    html += `<div class="card">
+      <div class="section-title">Andamento triennale</div>
+      <div class="legend">
+        <span><span class="legend-sq" style="background:#378ADD;"></span>Ricavi</span>
+        <span><span class="legend-sq" style="background:#1D9E75;"></span>EBITDA</span>
+        <span><span class="legend-sq" style="background:#E24B4A;"></span>Risultato netto</span>
+      </div>
+      <div class="chart-wrap" style="height:220px;"><canvas id="trendChart"></canvas></div>
+    </div>`;
+  }
+
+  // MAPPA VALORE
+  html += `<div><div class="section-title">Mappa del valore Leyton</div><div class="value-map">
+    ${mv.map(a=>`<div class="value-card ${a.potenziale||'nc'}">
+      <div class="value-card-header">
+        <span class="value-card-name">${a.area}</span>
+        <span class="badge badge-${a.badge_tipo||'neu'}" style="font-size:11px;">${a.badge_label||a.potenziale}</span>
+      </div>
+      <div class="value-card-body">${a.rationale||''}
+        ${a.prerequisiti ? `<div style="margin-top:6px;font-size:11px;color:var(--warn);border-top:0.5px solid var(--border);padding-top:6px;">⚑ ${a.prerequisiti}</div>` : ''}
+      </div>
+      ${a.stima && a.stima !== '—' && a.stima !== 'n.d.' ? `<div class="value-card-est ${a.potenziale||'basso'}">${a.stima}</div>` : ''}
+    </div>`).join('')}
+  </div></div>`;
+
+  // NOTA IRES/IRAP
+  if(d.nota_ires_irap) {
+    html += `<div class="note-box note-info"><strong>IRES/IRAP — legame con le agevolazioni:</strong> ${d.nota_ires_irap}</div>`;
+  }
+
+  // RNA
+  if(rna.aiuti && rna.aiuti.length) {
+    html += `<div class="card">
+      <div class="section-title">Registro Nazionale Aiuti</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
+        <div class="kpi" style="flex:1;min-width:120px;"><div class="kpi-label">Importo nominale</div><div class="kpi-value" style="font-size:16px;">${rna.totale_nominale||'—'}</div></div>
+        <div class="kpi" style="flex:1;min-width:120px;"><div class="kpi-label">Elemento aiuto</div><div class="kpi-value" style="font-size:16px;">${rna.totale_elemento||'—'}</div></div>
+        <div class="kpi" style="flex:1;min-width:120px;"><div class="kpi-label">N. aiuti (5 anni)</div><div class="kpi-value" style="font-size:16px;">${rna.n_aiuti||'—'}</div></div>
+      </div>
+      ${rna.allarme_de_minimis ? `<div class="note-box note-warn" style="margin-bottom:10px;"><strong>⚠ Soglia De Minimis:</strong> ${rna.nota_de_minimis}</div>` : ''}
+      <div class="table-wrap"><table>
+        <thead><tr><th>Framework</th><th>N.</th><th class="td-right">Importo</th><th>Stato</th><th>Note</th></tr></thead>
+        <tbody>
+          ${rna.aiuti.map(a=>`<tr>
+            <td>${a.framework}</td>
+            <td>${a.n_aiuti}</td>
+            <td class="td-right">${a.importo}</td>
+            <td><span class="badge badge-${a.stato||'neu'}" style="font-size:11px;">${a.stato==='ok'?'Attivo':a.stato==='warn'?'Attenzione':a.stato==='ko'?'Rischio':'—'}</span></td>
+            <td style="font-size:12px;color:var(--text2);">${a.nota||''}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+  }
+
+  // RED FLAGS
+  if(flags.length) {
+    html += `<div><div class="section-title">Red flag</div><div class="flag-list">
+      ${flags.map(f=>`<div class="flag-item">
+        <div class="flag-dot ${f.gravita||'warn'}"></div>
+        <div class="flag-text"><strong>${f.titolo}</strong> ${f.descrizione}</div>
+      </div>`).join('')}
+    </div></div>`;
+  }
+
+  // PRIORITÀ
+  if(prios.length) {
+    html += `<div><div class="section-title">Priorità commerciali Leyton</div><div class="priority-list">
+      ${prios.map(p=>`<div class="prio-item p${Math.min(p.rank,4)}">
+        <div class="prio-rank">${p.rank}</div>
+        <div>
+          <div class="prio-title">${p.area} — ${p.titolo}</div>
+          <div class="prio-desc">${p.descrizione}</div>
+          ${p.argomento_chiave ? `<div class="prio-desc" style="margin-top:6px;"><strong>Argomento chiave:</strong> ${p.argomento_chiave}</div>` : ''}
+          <div style="margin-top:8px;"><span class="badge badge-${p.badge_tipo||'neu'}" style="font-size:11px;">${p.badge_label}</span></div>
+        </div>
+      </div>`).join('')}
+    </div></div>`;
+  }
+
+  // DOMANDE CALL
+  if(domande.length) {
+    html += `<div class="card">
+      <div class="section-title">Domande chiave per il call</div>
+      <div class="table-wrap"><table class="domande-table">
+        <thead><tr><th style="width:130px;">Area</th><th>Domanda</th></tr></thead>
+        <tbody>${domande.map(d=>`<tr><td>${d.area}</td><td>${d.domanda}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  }
+
+  // FOOTER
+  html += `<div class="dash-footer">BPM Dashboard Leyton Italia · ${az.ragione||'Prospect'} · ${new Date().toLocaleDateString('it-IT')} · Uso interno</div>`;
+
+  el.innerHTML = html;
+
+  // CHART
+  if(trend.ricavi && trend.ricavi.length) {
+    setTimeout(() => {
+      const canvas = document.getElementById('trendChart');
+      if(!canvas) return;
+      chartInstances['trend'] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: trend.labels || ['Y-2','Y-1','Y'],
+          datasets: [
+            { label:'Ricavi', data: trend.ricavi, backgroundColor:'#378ADD' },
+            { label:'EBITDA', data: trend.ebitda, backgroundColor:'#1D9E75' },
+            { label:'Risultato netto', data: trend.utile, backgroundColor:'#E24B4A' }
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': €'+ctx.parsed.y.toLocaleString('it-IT')+'k'}} },
+          scales:{
+            x:{grid:{display:false},border:{display:false}},
+            y:{ticks:{callback:v=>'€'+v.toLocaleString('it-IT')+'k',font:{size:11}},border:{display:false},grid:{color:'rgba(0,0,0,0.05)'}}
+          }
+        }
+      });
+    }, 100);
+  }
+}
+</script>
+</body>
+</html>
