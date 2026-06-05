@@ -369,6 +369,7 @@ async function analizza() {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 4096,
+        system: 'Sei un analista BPM di Leyton Italia. Rispondi SEMPRE e SOLO con un oggetto JSON valido, senza alcun testo prima o dopo, senza markdown, senza backtick, senza spiegazioni. Il tuo output deve iniziare con { e finire con }.',
         messages: [{ role: 'user', content: buildPrompt() }]
       })
     });
@@ -539,13 +540,20 @@ Restituisci esattamente questo JSON (tutti i campi obbligatori):
 }
 
 function extractJSON(text) {
+  try { return JSON.parse(text.trim()); } catch(e) {}
   try {
-    const clean = text.replace(/```json|```/g,'').trim();
-    const start = clean.indexOf('{');
-    const end = clean.lastIndexOf('}');
-    if(start === -1 || end === -1) return null;
-    return JSON.parse(clean.slice(start, end+1));
-  } catch(e) { return null; }
+    const c = text.replace(/```json\s*/gi,"").replace(/```\s*/g,"").trim();
+    return JSON.parse(c);
+  } catch(e) {}
+  try {
+    const s = text.indexOf("{"), e2 = text.lastIndexOf("}");
+    if(s !== -1 && e2 > s) {
+      let j = text.slice(s, e2+1);
+      j = j.replace(/,\s*([}\]])/g, "$1");
+      return JSON.parse(j);
+    }
+  } catch(e) {}
+  return null;
 }
 
 function renderDashboard(d) {
