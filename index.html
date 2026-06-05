@@ -184,7 +184,7 @@ tr.total-row td{font-weight:600;background:var(--bg3);}
   </div>
   <div class="topbar-right">
     <button class="btn btn-danger" onclick="clearAll()">🗑 Cancella</button>
-    <button class="btn btn-primary" id="btnAnalizza" onclick="analizza()" disabled>⚡ Analizza</button>
+    <button class="btn btn-primary" id="btnAnalizza" onclick="analizza()">⚡ Analizza</button>
     <button class="btn btn-pdf" onclick="window.print()">📄 Genera PDF</button>
   </div>
 </div>
@@ -293,6 +293,7 @@ function loadAll() {
   if(key) { document.getElementById('apiKey').value = key; updateApiStatus(key); }
   const last = localStorage.getItem('bpm_last_v2');
   if(last) { try { renderDashboard(JSON.parse(last)); } catch(e) {} }
+  updateBtn();
 }
 
 function updateApiStatus(v) {
@@ -313,7 +314,7 @@ function updateBtn() {
   const key = localStorage.getItem('bpm_apikey') || '';
   const ragione = (document.getElementById('ragione')||{}).value || '';
   const doc = (document.getElementById('docBilancio')||{}).value || '';
-  document.getElementById('btnAnalizza').disabled = !(key.startsWith('sk-ant-') && (ragione || doc));
+  document.getElementById('btnAnalizza').disabled = false;
 }
 
 function clearAll() {
