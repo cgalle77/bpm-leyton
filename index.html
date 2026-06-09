@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
@@ -292,47 +292,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);f
     Esporta PDF
   </button>
   <div class="tb-spacer"></div>
-  <div style="display:flex;align-items:center;gap:8px">
-    <label style="font-size:11px;color:var(--ink3);white-space:nowrap">API Key</label>
-    <input type="password" id="apiKeyGlobal" placeholder="sk-ant-api03-..." style="width:200px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:5px 10px;font-size:11px;font-family:'DM Mono',monospace;color:var(--ink);outline:none" autocomplete="off">
-    <button class="tb-btn" onclick="saveApiKey()" style="padding:5px 10px;font-size:11px">Salva</button>
-  </div>
   <span class="tb-hint">Cruscotto analisi cliente · uso interno Leyton</span>
 </div>
 
 <!-- INPUT PANEL -->
 <div class="input-panel" id="inputPanel">
   <div class="ip-head">
-    <div class="ip-title">Nuovo prospect</div>
-    <div class="ip-sub">Inserisci l'anagrafica, incolla i documenti e premi <strong>Analizza prospect</strong>. Il cruscotto si popola automaticamente.</div>
+    <div class="ip-title">Carica analisi nuovo prospect</div>
+    <div class="ip-sub">Incolla qui il JSON che Claude ti ha restituito in chat. Il cruscotto si popola automaticamente.</div>
   </div>
   <div class="ip-body">
-    <div class="ip-grid">
-      <div class="ip-row"><label class="ip-label">Ragione sociale</label><input class="ip-input" id="inCompany" placeholder="Es. Rossi Industrie S.p.A."></div>
-      <div class="ip-row"><label class="ip-label">Settore</label><input class="ip-input" id="inSector" placeholder="Es. Manifattura meccanica"></div>
-    </div>
-    <div class="ip-row"><label class="ip-label">Data di riferimento bilancio</label><input class="ip-input" id="inDate" placeholder="Es. 31/12/2025" style="max-width:240px"></div>
-
     <div class="ip-row">
-      <label class="ip-label">Documenti aziendali (incolla testo: bilancio, nota integrativa, RNA, bandi)</label>
-      <textarea class="ip-textarea" id="inDocs" placeholder="Incolla qui il testo estratto dai documenti aziendali. Copia da PDF con Ctrl+A → Ctrl+C, poi incolla qui. Più testo fornisci, più accurata l'analisi."></textarea>
+      <label class="ip-label">JSON analisi (copialo dalla chat con Claude)</label>
+      <textarea class="ip-textarea" id="jsonInput" style="min-height:250px;font-family:'DM Mono',monospace;font-size:11.5px" placeholder='Incolla qui il JSON. Deve iniziare con { e finire con }'></textarea>
     </div>
-
-    <div class="ip-note">
-      <strong>Come funziona:</strong> inserisci la API key Anthropic nella toolbar in alto (la ottieni su <a href="https://console.anthropic.com" target="_blank" style="color:var(--blue)">console.anthropic.com</a> → API Keys). Incolla qui i documenti e premi <strong>Analizza prospect</strong>. L'analisi costa ~€0,03. La chiave viene salvata nel browser per le sessioni successive.
-    </div>
-
-    <div id="analysisProgress" style="display:none;margin-top:12px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite"></div>
-        <span id="analysisMsg" style="font-size:13px;color:var(--ink2)">Analisi in corso...</span>
-      </div>
-      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-    </div>
+    <div id="loadError" style="display:none;margin-top:8px;padding:10px 14px;background:var(--red-bg);border-left:2px solid var(--red);border-radius:var(--r);font-size:12px;color:#7a1a10"></div>
+    <div id="loadOk" style="display:none;margin-top:8px;padding:10px 14px;background:var(--green-bg);border-left:2px solid var(--green);border-radius:var(--r);font-size:12px;color:#1a5028"></div>
   </div>
   <div class="ip-footer">
-    <button class="tb-btn primary" id="analyzeBtn" onclick="runAnalysis()" style="padding:10px 24px;font-size:14px">
-      ⚡ Analizza prospect
+    <button class="tb-btn primary" onclick="loadJSON()" style="padding:10px 24px;font-size:14px">
+      ⚡ Carica e popola cruscotto
     </button>
     <button class="tb-btn" onclick="cancelInput()">Annulla</button>
   </div>
@@ -665,22 +644,12 @@ function buildCharts(){
 buildCharts();
 
 /* TOOLBAR ACTIONS */
-
-// API Key — salva in localStorage
-function saveApiKey(){
-  const k=document.getElementById('apiKeyGlobal').value.trim();
-  if(k){ localStorage.setItem('leyton_api_key',k); alert('API key salvata nel browser.'); }
-}
-function loadApiKey(){
-  const k=localStorage.getItem('leyton_api_key')||'';
-  document.getElementById('apiKeyGlobal').value=k;
-  return k;
-}
-window.addEventListener('DOMContentLoaded',loadApiKey);
-
 function newCompany(){
-  if(!confirm('Azzerare i dati attuali e inserire un nuovo prospect?')) return;
+  if(!confirm('Caricare un nuovo prospect? I dati attuali verranno sostituiti.')) return;
   document.getElementById('dashboard').style.display='none';
+  document.getElementById('jsonInput').value='';
+  document.getElementById('loadError').style.display='none';
+  document.getElementById('loadOk').style.display='none';
   document.getElementById('inputPanel').classList.add('active');
   document.getElementById('inputPanel').scrollIntoView({behavior:'smooth'});
 }
@@ -689,89 +658,36 @@ function cancelInput(){
   document.getElementById('dashboard').style.display='block';
 }
 
-/* ---- ANALISI VIA API ---- */
-const SYSTEM_PROMPT=`Sei un Business Performance Manager di Leyton Italia. Analizza i documenti aziendali e rispondi SOLO con un oggetto JSON valido, senza markdown, senza backtick, senza testo prima o dopo. Struttura obbligatoria:
-{"company":"nome azienda o N/D","sector":"settore","date":"data bilancio",
-"financial":{"years":["anno1","anno2","anno3"],"revenues":[num,num,num],"ebitda":[num,num,num],"net_profit":[num,num,num],"labor_cost":num,"pfn":num,"headcount":num,"notes":["nota con fonte"],"anomalies":["anomalia"]},
-"areas":{"cirs":{"findings":[],"opportunities":[],"priority":"Alta|Media|Bassa","norm":"riferimento normativo aggiornato 2026"},"ip":{"findings":[],"opportunities":[],"priority":"","norm":""},"cibs":{"findings":[],"opportunities":[],"priority":"","norm":""},"grants":{"findings":[],"opportunities":[],"priority":"","norm":""},"esg":{"findings":[],"opportunities":[],"priority":"","norm":""},"energy":{"findings":[],"opportunities":[],"priority":"","norm":""}},
-"valueMap":[{"name":"CIRS","status":"Proponi|Da valutare|Non rilevato"},{"name":"Patent Box","status":""},{"name":"Beni strum.","status":""},{"name":"Grants","status":""},{"name":"ESG","status":""},{"name":"Energy","status":""}],
-"pbFlow":[{"l":"Utile netto d'esercizio","v":"€..."},{"l":"Risultato ante imposte","v":""},{"l":"IRES stimata","v":""},{"l":"IRAP a bilancio","v":""},{"l":"Imposte totali correnti","v":""}],
-"pbElig":[{"ok":true,"t":"Brevetti..."},{"ok":true,"t":"Software..."},{"ok":true,"t":"Disegni..."},{"ok":false,"t":"Marchi..."}],
-"pbNote":"nota fiscale su perdite e Patent Box",
-"rna":[["Misura","Concedente","Nominale","Elem. aiuto","Anno","Framework","COR"]],
-"rnaNote":"nota de minimis",
-"red_flags":[{"type":"danger|warning","text":"...","action":"..."}],
-"priorities":[["Area","Opportunità","Evidenza","Alta|Media|Bassa"]]}
-Regole: usa SOLO dati presenti nei documenti. Cita sempre la fonte (es. "nota integrativa sez. X"). Numeri in migliaia di euro (K). Se un dato manca usa null o []. Non inventare dati. Per il Patent Box: solo brevetti, software proprietari e disegni/modelli (MAI marchi, esclusi dal 2017). Riferimenti normativi 2026: Credito R&S 10% fino 2031 (art.1 c.200 L.160/2019, confermato L.199/2025); CIIT cessato 31/12/2025; Credito Design 10% solo 2026 (c.925-926 L.199/2025); Iperammortamento dal 2026 (art.1 c.427-436 L.199/2025, maggiorazione fino 180%, solo IRES/IRPEF, NON IRAP, 2026-2028); Patent Box art.6 DL 146/2021 (+110% costi R&S, beneficio ~30,69%); TEE nuovo decreto MASE 2026.`;
+function loadJSON(){
+  const raw=document.getElementById('jsonInput').value.trim();
+  const errEl=document.getElementById('loadError');
+  const okEl=document.getElementById('loadOk');
+  errEl.style.display='none';
+  okEl.style.display='none';
 
-async function runAnalysis(){
-  const apiKey=document.getElementById('apiKeyGlobal').value.trim()||localStorage.getItem('leyton_api_key')||'';
-  if(!apiKey){ alert('Inserisci la API key Anthropic nella toolbar in alto prima di procedere.'); return; }
-  const docText=document.getElementById('inDocs').value.trim();
-  if(!docText){ alert('Incolla almeno un documento nel campo di testo.'); return; }
-
-  const company=document.getElementById('inCompany').value||'';
-  const sector=document.getElementById('inSector').value||'';
-  const date=document.getElementById('inDate').value||'';
-
-  const btn=document.getElementById('analyzeBtn');
-  const prog=document.getElementById('analysisProgress');
-  const msg=document.getElementById('analysisMsg');
-  btn.disabled=true;
-  prog.style.display='block';
-  msg.textContent='Invio documenti al modello AI...';
-
-  // salva la chiave
-  localStorage.setItem('leyton_api_key',apiKey);
+  if(!raw){
+    errEl.textContent='Incolla il JSON prima di premere Carica.';
+    errEl.style.display='block';
+    return;
+  }
 
   try{
-    msg.textContent='Modello AI in elaborazione (può richiedere 30-60 secondi)...';
-    const userMsg='Azienda: '+(company||'N/D')+'. Settore: '+(sector||'N/D')+'. Data bilancio: '+(date||'N/D')+'.\n\nDocumenti da analizzare:\n\n'+docText;
-
-    const response=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-calls':'true'
-      },
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:8000,
-        system:SYSTEM_PROMPT,
-        messages:[{role:'user',content:userMsg}]
-      })
-    });
-
-    if(!response.ok){
-      const errData=await response.json().catch(()=>({}));
-      throw new Error(errData.error?.message||'Errore HTTP '+response.status);
+    const jsonMatch=raw.match(/\{[\s\S]*\}/);
+    if(!jsonMatch) throw new Error('Nessun oggetto JSON trovato nel testo incollato.');
+    const parsed=JSON.parse(jsonMatch[0]);
+    if(!parsed.company && !parsed.financial && !parsed.areas){
+      throw new Error('Il JSON non sembra contenere dati di analisi BPM validi.');
     }
 
-    msg.textContent='Parsing risposta...';
-    const data=await response.json();
-    const rawText=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-    if(!rawText) throw new Error('Risposta vuota dal modello.');
+    renderFromJSON(parsed);
 
-    const jsonMatch=rawText.match(/\{[\s\S]*\}/);
-    if(!jsonMatch) throw new Error('Impossibile estrarre JSON dalla risposta.');
-    const parsed=JSON.parse(jsonMatch[0]);
-
-    msg.textContent='Rendering cruscotto...';
-    setTimeout(()=>{
-      renderFromJSON(parsed);
-      prog.style.display='none';
-      btn.disabled=false;
-      document.getElementById('inputPanel').classList.remove('active');
-      document.getElementById('dashboard').style.display='block';
-      document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
-    },200);
+    document.getElementById('inputPanel').classList.remove('active');
+    document.getElementById('dashboard').style.display='block';
+    document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
 
   }catch(e){
-    prog.style.display='none';
-    btn.disabled=false;
-    alert('Errore durante l\'analisi: '+e.message+'\n\nSe il problema persiste, verifica che la API key sia corretta.');
+    errEl.textContent='Errore nel parsing del JSON: '+e.message;
+    errEl.style.display='block';
   }
 }
 
