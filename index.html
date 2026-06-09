@@ -735,7 +735,7 @@ function renderFromJSON(d){
     <div class="metric"><div class="metric-label">Costo del lavoro</div><div class="metric-val">${fmt(fin.labor_cost)}</div><div class="metric-sub">${fin.headcount?fin.headcount+' dipendenti':''}</div></div>`;
 
   // Anomalie e note
-  const notesHtml=((fin.anomalies||[]).map(a=>'<div class="note note-warn"><span class="note-icon">⚠</span><span>'+a+'</span></div>')+
+  const notesHtml=(fin.anomalies||[]).map(a=>'<div class="note note-warn"><span class="note-icon">⚠</span><span>'+a+'</span></div>').concat(
     (fin.notes||[]).map(n=>'<div class="note note-info"><span class="note-icon">ℹ</span><span>'+n+'</span></div>')).join('');
 
   // Mappa del valore
