@@ -292,6 +292,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);f
     Esporta PDF
   </button>
   <div class="tb-spacer"></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <label style="font-size:11px;color:var(--ink3);white-space:nowrap">API Key</label>
+    <input type="password" id="apiKeyGlobal" placeholder="sk-ant-api03-..." style="width:200px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:5px 10px;font-size:11px;font-family:'DM Mono',monospace;color:var(--ink);outline:none" autocomplete="off">
+    <button class="tb-btn" onclick="saveApiKey()" style="padding:5px 10px;font-size:11px">Salva</button>
+  </div>
   <span class="tb-hint">Cruscotto analisi cliente · uso interno Leyton</span>
 </div>
 
@@ -299,7 +304,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);f
 <div class="input-panel" id="inputPanel">
   <div class="ip-head">
     <div class="ip-title">Nuovo prospect</div>
-    <div class="ip-sub">Raccogli qui i documenti, poi mandali a Claude in chat per generare il cruscotto aggiornato.</div>
+    <div class="ip-sub">Inserisci l'anagrafica, incolla i documenti e premi <strong>Analizza prospect</strong>. Il cruscotto si popola automaticamente.</div>
   </div>
   <div class="ip-body">
     <div class="ip-grid">
@@ -309,28 +314,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);f
     <div class="ip-row"><label class="ip-label">Data di riferimento bilancio</label><input class="ip-input" id="inDate" placeholder="Es. 31/12/2025" style="max-width:240px"></div>
 
     <div class="ip-row">
-      <label class="ip-label">Testo documenti (facoltativo — incolla ciò che hai già in formato testo)</label>
-      <textarea class="ip-textarea" id="inDocs" placeholder="Incolla qui testo da bilancio, nota integrativa, RNA, bandi..."></textarea>
-    </div>
-
-    <div class="ip-row">
-      <label class="ip-label">File da analizzare (PDF, Word, Excel, PowerPoint, immagini)</label>
-      <div class="filedrop" id="fileDrop">
-        <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.csv" style="display:none" onchange="addFiles(this.files)">
-        <button class="add-file-btn" onclick="document.getElementById('fileInput').click()">
-          <span style="font-size:18px;line-height:1">＋</span> Aggiungi file
-        </button>
-        <span class="filedrop-hint">oppure trascina qui i file</span>
-      </div>
-      <div id="fileList" class="file-list"></div>
+      <label class="ip-label">Documenti aziendali (incolla testo: bilancio, nota integrativa, RNA, bandi)</label>
+      <textarea class="ip-textarea" id="inDocs" placeholder="Incolla qui il testo estratto dai documenti aziendali. Copia da PDF con Ctrl+A → Ctrl+C, poi incolla qui. Più testo fornisci, più accurata l'analisi."></textarea>
     </div>
 
     <div class="ip-note">
-      <strong>Come si usa davvero:</strong> questo pannello raccoglie l'elenco dei documenti del prospect. Il file HTML non può leggerne il contenuto da solo — chi analizza i documenti è <strong>Claude in chat</strong>, che legge nativamente PDF, Word, Excel, PowerPoint e immagini. Quindi: prepara qui la lista, poi <strong>trascina gli stessi file nella chat con Claude</strong> scrivendo "analizza questo prospect e rigenera il cruscotto". Riceverai un nuovo HTML con i dati dentro. Il tasto qui sotto copia un promemoria con anagrafica e checklist file da incollare in chat.
+      <strong>Come funziona:</strong> inserisci la API key Anthropic nella toolbar in alto (la ottieni su <a href="https://console.anthropic.com" target="_blank" style="color:var(--blue)">console.anthropic.com</a> → API Keys). Incolla qui i documenti e premi <strong>Analizza prospect</strong>. L'analisi costa ~€0,03. La chiave viene salvata nel browser per le sessioni successive.
+    </div>
+
+    <div id="analysisProgress" style="display:none;margin-top:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite"></div>
+        <span id="analysisMsg" style="font-size:13px;color:var(--ink2)">Analisi in corso...</span>
+      </div>
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
     </div>
   </div>
   <div class="ip-footer">
-    <button class="tb-btn primary" onclick="genPrompt()">Copia promemoria per Claude</button>
+    <button class="tb-btn primary" id="analyzeBtn" onclick="runAnalysis()" style="padding:10px 24px;font-size:14px">
+      ⚡ Analizza prospect
+    </button>
     <button class="tb-btn" onclick="cancelInput()">Annulla</button>
   </div>
 </div>
@@ -662,7 +665,18 @@ function buildCharts(){
 buildCharts();
 
 /* TOOLBAR ACTIONS */
-let collectedFiles = [];
+
+// API Key — salva in localStorage
+function saveApiKey(){
+  const k=document.getElementById('apiKeyGlobal').value.trim();
+  if(k){ localStorage.setItem('leyton_api_key',k); alert('API key salvata nel browser.'); }
+}
+function loadApiKey(){
+  const k=localStorage.getItem('leyton_api_key')||'';
+  document.getElementById('apiKeyGlobal').value=k;
+  return k;
+}
+window.addEventListener('DOMContentLoaded',loadApiKey);
 
 function newCompany(){
   if(!confirm('Azzerare i dati attuali e inserire un nuovo prospect?')) return;
@@ -675,52 +689,248 @@ function cancelInput(){
   document.getElementById('dashboard').style.display='block';
 }
 
-function fileExt(name){ const p=name.split('.'); return p.length>1?p.pop().toUpperCase():'FILE'; }
-function fmtSize(b){ return b>1048576?(b/1048576).toFixed(1)+' MB':(b/1024).toFixed(0)+' KB'; }
+/* ---- ANALISI VIA API ---- */
+const SYSTEM_PROMPT=`Sei un Business Performance Manager di Leyton Italia. Analizza i documenti aziendali e rispondi SOLO con un oggetto JSON valido, senza markdown, senza backtick, senza testo prima o dopo. Struttura obbligatoria:
+{"company":"nome azienda o N/D","sector":"settore","date":"data bilancio",
+"financial":{"years":["anno1","anno2","anno3"],"revenues":[num,num,num],"ebitda":[num,num,num],"net_profit":[num,num,num],"labor_cost":num,"pfn":num,"headcount":num,"notes":["nota con fonte"],"anomalies":["anomalia"]},
+"areas":{"cirs":{"findings":[],"opportunities":[],"priority":"Alta|Media|Bassa","norm":"riferimento normativo aggiornato 2026"},"ip":{"findings":[],"opportunities":[],"priority":"","norm":""},"cibs":{"findings":[],"opportunities":[],"priority":"","norm":""},"grants":{"findings":[],"opportunities":[],"priority":"","norm":""},"esg":{"findings":[],"opportunities":[],"priority":"","norm":""},"energy":{"findings":[],"opportunities":[],"priority":"","norm":""}},
+"valueMap":[{"name":"CIRS","status":"Proponi|Da valutare|Non rilevato"},{"name":"Patent Box","status":""},{"name":"Beni strum.","status":""},{"name":"Grants","status":""},{"name":"ESG","status":""},{"name":"Energy","status":""}],
+"pbFlow":[{"l":"Utile netto d'esercizio","v":"€..."},{"l":"Risultato ante imposte","v":""},{"l":"IRES stimata","v":""},{"l":"IRAP a bilancio","v":""},{"l":"Imposte totali correnti","v":""}],
+"pbElig":[{"ok":true,"t":"Brevetti..."},{"ok":true,"t":"Software..."},{"ok":true,"t":"Disegni..."},{"ok":false,"t":"Marchi..."}],
+"pbNote":"nota fiscale su perdite e Patent Box",
+"rna":[["Misura","Concedente","Nominale","Elem. aiuto","Anno","Framework","COR"]],
+"rnaNote":"nota de minimis",
+"red_flags":[{"type":"danger|warning","text":"...","action":"..."}],
+"priorities":[["Area","Opportunità","Evidenza","Alta|Media|Bassa"]]}
+Regole: usa SOLO dati presenti nei documenti. Cita sempre la fonte (es. "nota integrativa sez. X"). Numeri in migliaia di euro (K). Se un dato manca usa null o []. Non inventare dati. Per il Patent Box: solo brevetti, software proprietari e disegni/modelli (MAI marchi, esclusi dal 2017). Riferimenti normativi 2026: Credito R&S 10% fino 2031 (art.1 c.200 L.160/2019, confermato L.199/2025); CIIT cessato 31/12/2025; Credito Design 10% solo 2026 (c.925-926 L.199/2025); Iperammortamento dal 2026 (art.1 c.427-436 L.199/2025, maggiorazione fino 180%, solo IRES/IRPEF, NON IRAP, 2026-2028); Patent Box art.6 DL 146/2021 (+110% costi R&S, beneficio ~30,69%); TEE nuovo decreto MASE 2026.`;
 
-function addFiles(fileList){
-  for(const f of fileList){ collectedFiles.push({name:f.name,size:f.size,ext:fileExt(f.name)}); }
-  renderFiles();
-}
-function removeFile(i){ collectedFiles.splice(i,1); renderFiles(); }
-function renderFiles(){
-  const el=document.getElementById('fileList');
-  el.innerHTML=collectedFiles.map((f,i)=>`
-    <div class="file-chip">
-      <span class="fc-ico">${f.ext.slice(0,4)}</span>
-      <span class="fc-name">${f.name}</span>
-      <span class="fc-size">${fmtSize(f.size)}</span>
-      <button class="fc-del" onclick="removeFile(${i})" title="Rimuovi">✕</button>
-    </div>`).join('');
-}
+async function runAnalysis(){
+  const apiKey=document.getElementById('apiKeyGlobal').value.trim()||localStorage.getItem('leyton_api_key')||'';
+  if(!apiKey){ alert('Inserisci la API key Anthropic nella toolbar in alto prima di procedere.'); return; }
+  const docText=document.getElementById('inDocs').value.trim();
+  if(!docText){ alert('Incolla almeno un documento nel campo di testo.'); return; }
 
-// drag & drop
-(function(){
-  const dz=document.getElementById('fileDrop');
-  if(!dz) return;
-  ['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('drag');}));
-  ['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('drag');}));
-  dz.addEventListener('drop',ev=>{ if(ev.dataTransfer.files.length) addFiles(ev.dataTransfer.files); });
-})();
+  const company=document.getElementById('inCompany').value||'';
+  const sector=document.getElementById('inSector').value||'';
+  const date=document.getElementById('inDate').value||'';
 
-function genPrompt(){
-  const company=document.getElementById('inCompany').value||'[ragione sociale]';
-  const sector=document.getElementById('inSector').value||'[settore]';
-  const date=document.getElementById('inDate').value||'[data bilancio]';
-  const docs=document.getElementById('inDocs').value.trim();
-  let txt='Agisci come Business Performance Manager di Leyton Italia. Analizza il prospect "'+company+'" ('+sector+', bilancio '+date+') e rigenera il cruscotto HTML completo con: snapshot finanziario (grafici separati per voce), mappa del valore, 6 aree (CIRS, IP/Patent Box, Beni strumentali 4.0/Iperammortamento, Grants, ESG, Energy), tabella RNA, red flag, priorità.\n';
-  txt+='Promemoria normativo: Patent Box solo brevetti/software proprietari/disegni-modelli (MAI marchi); Iperammortamento (L.199/2025) dal 2026 sostituisce 4.0 e 5.0, solo IRES/IRPEF; CIIT cessato 31/12/2025; credito R&S 10% fino 2031; credito Design 10% solo 2026.\n';
-  if(collectedFiles.length){
-    txt+='\nFile da allegare in chat ('+collectedFiles.length+'):\n'+collectedFiles.map(f=>'- '+f.name).join('\n')+'\n→ TRASCINA QUESTI FILE NELLA CHAT INSIEME A QUESTO MESSAGGIO.\n';
+  const btn=document.getElementById('analyzeBtn');
+  const prog=document.getElementById('analysisProgress');
+  const msg=document.getElementById('analysisMsg');
+  btn.disabled=true;
+  prog.style.display='block';
+  msg.textContent='Invio documenti al modello AI...';
+
+  // salva la chiave
+  localStorage.setItem('leyton_api_key',apiKey);
+
+  try{
+    msg.textContent='Modello AI in elaborazione (può richiedere 30-60 secondi)...';
+    const userMsg='Azienda: '+(company||'N/D')+'. Settore: '+(sector||'N/D')+'. Data bilancio: '+(date||'N/D')+'.\n\nDocumenti da analizzare:\n\n'+docText;
+
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-calls':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:8000,
+        system:SYSTEM_PROMPT,
+        messages:[{role:'user',content:userMsg}]
+      })
+    });
+
+    if(!response.ok){
+      const errData=await response.json().catch(()=>({}));
+      throw new Error(errData.error?.message||'Errore HTTP '+response.status);
+    }
+
+    msg.textContent='Parsing risposta...';
+    const data=await response.json();
+    const rawText=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    if(!rawText) throw new Error('Risposta vuota dal modello.');
+
+    const jsonMatch=rawText.match(/\{[\s\S]*\}/);
+    if(!jsonMatch) throw new Error('Impossibile estrarre JSON dalla risposta.');
+    const parsed=JSON.parse(jsonMatch[0]);
+
+    msg.textContent='Rendering cruscotto...';
+    setTimeout(()=>{
+      renderFromJSON(parsed);
+      prog.style.display='none';
+      btn.disabled=false;
+      document.getElementById('inputPanel').classList.remove('active');
+      document.getElementById('dashboard').style.display='block';
+      document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
+    },200);
+
+  }catch(e){
+    prog.style.display='none';
+    btn.disabled=false;
+    alert('Errore durante l\'analisi: '+e.message+'\n\nSe il problema persiste, verifica che la API key sia corretta.');
   }
-  if(docs){ txt+='\nTesto documenti incollato:\n'+docs; }
-  if(!docs && !collectedFiles.length){ alert('Aggiungi almeno un file o incolla del testo prima di copiare il promemoria.'); return; }
-  navigator.clipboard.writeText(txt).then(()=>{
-    alert('Promemoria copiato. Incollalo nella chat con Claude'+(collectedFiles.length?' e TRASCINA i '+collectedFiles.length+' file elencati.':'.'));
-  }).catch(()=>{
-    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
-    alert('Promemoria copiato.');
-  });
+}
+
+/* ---- RENDERING DINAMICO DEL CRUSCOTTO ---- */
+function renderFromJSON(d){
+  const fin=d.financial||{};
+  const years=(fin.years||[]).filter(Boolean);
+  const revs=fin.revenues||[];
+  const ebit=fin.ebitda||[];
+  const netP=fin.net_profit||[];
+  const lastYear=years.slice(-1)[0]||'';
+
+  const fmt=v=>{
+    if(v==null||v===''||isNaN(v)) return 'N/D';
+    const n=Number(v),abs=Math.abs(n),sign=n<0?'-':'';
+    return abs>=1000?sign+'€'+(abs/1000).toFixed(1)+'M':sign+'€'+Math.round(abs).toLocaleString('it-IT')+'K';
+  };
+  const pct=(c,p)=>{
+    if(c==null||p==null||p===0) return '';
+    const v=((c-p)/Math.abs(p)*100).toFixed(1);
+    return v>=0?'<span class="trend-up">▲ +'+v+'%</span>':'<span class="trend-down">▼ '+v+'%</span>';
+  };
+
+  const lastRev=revs.filter(v=>v!=null).slice(-1)[0];
+  const prevRev=revs.filter(v=>v!=null).slice(-2,-1)[0];
+  const lastEbit=ebit.filter(v=>v!=null).slice(-1)[0];
+  const lastNet=netP.filter(v=>v!=null).slice(-1)[0];
+
+  // Aggiorna header
+  document.getElementById('hdrCompany').innerHTML='<strong>'+(d.company||'Prospect')+'</strong> — Analisi Prospect';
+  document.getElementById('hdrSector').textContent=d.sector||'';
+  document.getElementById('hdrDate').textContent=d.date||lastYear;
+
+  const AREA_CLS={cirs:'purple',ip:'teal',cibs:'blue',grants:'amber',esg:'green',energy:'coral'};
+  const AREA_ICON={cirs:'🔬',ip:'©',cibs:'⚙',grants:'🏆',esg:'🌿',energy:'⚡'};
+  const AREA_NAME={cirs:'CIRS — R&S e Innovazione',ip:'IP e Patent Box',cibs:'Beni strumentali',grants:'Grants e Bandi',esg:'ESG e Sostenibilità',energy:'Energy — Efficientamento'};
+  const VM_CLS={Proponi:'c-cirs',['Da valutare']:'c-ip',['Non rilevato']:''};
+
+  // Sezione 1 — metriche
+  const metricsHtml=`
+    <div class="metric accent"><div class="metric-label">Ricavi ${lastYear}</div><div class="metric-val">${fmt(lastRev)}</div><div class="metric-sub">${pct(lastRev,prevRev)} vs anno prec.</div></div>
+    <div class="metric"><div class="metric-label">EBITDA ${lastYear}</div><div class="metric-val">${fmt(lastEbit)}</div><div class="metric-sub">${lastRev&&lastEbit?'Margine: '+((lastEbit/lastRev)*100).toFixed(1)+'%':''}</div></div>
+    <div class="metric ${lastNet<0?'warn':''}"><div class="metric-label">Utile netto ${lastYear}</div><div class="metric-val ${lastNet<0?'red':''}">${fmt(lastNet)}</div></div>
+    <div class="metric ${fin.pfn>20000?'warn':''}"><div class="metric-label">PFN ${lastYear}</div><div class="metric-val ${fin.pfn>20000?'orange':''}">${fmt(fin.pfn)}</div></div>
+    <div class="metric"><div class="metric-label">Costo del lavoro</div><div class="metric-val">${fmt(fin.labor_cost)}</div><div class="metric-sub">${fin.headcount?fin.headcount+' dipendenti':''}</div></div>`;
+
+  // Anomalie e note
+  const notesHtml=((fin.anomalies||[]).map(a=>'<div class="note note-warn"><span class="note-icon">⚠</span><span>'+a+'</span></div>')+
+    (fin.notes||[]).map(n=>'<div class="note note-info"><span class="note-icon">ℹ</span><span>'+n+'</span></div>')).join('');
+
+  // Mappa del valore
+  const vmItems=d.valueMap||[];
+  const vmCls={Proponi:'c-cirs',['Da valutare']:'c-ip',['Non rilevato']:''};
+  const vmKeys=['cirs','ip','cibs','grants','esg','energy'];
+  const vmHtml=vmItems.map((v,i)=>{
+    const cls=AREA_CLS[vmKeys[i]]||'cirs';
+    const stCls=v.status==='Proponi'?'st-go':v.status==='Da valutare'?'st-maybe':'st-no';
+    return `<div class="vmap-cell active c-${cls}"><span class="vmap-icon">${AREA_ICON[vmKeys[i]]||'📊'}</span><div class="vmap-name">${v.name}</div><span class="vmap-status ${stCls}">${v.status}</span></div>`;
+  }).join('');
+
+  // Aree
+  const areas=d.areas||{};
+  const areasHtml=Object.entries(areas).map(([key,a])=>{
+    const cls=AREA_CLS[key]||'purple';
+    const icon=AREA_ICON[key]||'📊';
+    const name=a.name||AREA_NAME[key]||key;
+    const findings=(a.findings||[]).map(f=>'<div class="finding"><div class="fd"></div><span>'+f+'</span></div>').join('');
+    const opps=(a.opportunities||[]).map(o=>'<div class="opp-item"><span class="opp-arr">→</span><span>'+o+'</span></div>').join('');
+    const norm=a.norm?'<div class="norm-ref"><strong>Riferimento normativo</strong><br>'+a.norm+'</div>':'';
+    const prioCls=a.priority==='Alta'?'prio-alta':a.priority==='Media'?'prio-media':'prio-bassa';
+    return `<div class="area-card area-${cls}">
+      <div class="area-top"><div class="area-icon-wrap">${icon}</div><div class="area-title-col"><div class="area-label">${name}</div></div><span class="prio ${prioCls}">${a.priority||'N/D'}</span></div>
+      <div class="area-body">
+        <div class="area-findings">${findings||'<div class="empty-msg">Nessun dato rilevante trovato.</div>'}</div>
+        ${opps?'<div class="area-opps"><div class="opp-label">Opportunità Leyton</div>'+opps+'</div>':''}
+        ${norm}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Patent Box
+  const pbFlowHtml=(d.pbFlow||[]).map(s=>
+    '<div class="pb-step"><span class="pb-step-label">'+s.l+'</span><span class="pb-step-val">'+s.v+'</span></div><div class="pb-arrow-down">▼</div>'
+  ).join('').replace(/<div class="pb-arrow-down">▼<\/div>$/,'');
+  const pbEligHtml=(d.pbElig||[]).map(e=>
+    '<div class="pb-elig-item '+(e.ok?'pb-yes':'pb-no')+'"><span class="pb-elig-icon">'+(e.ok?'✓':'✕')+'</span><span>'+e.t+'</span></div>'
+  ).join('');
+
+  // RNA
+  const rnaRows=(d.rna||[]).map(r=>{
+    if(!Array.isArray(r)||r.length<7) return '';
+    const fwColors={GBER:'background:#e8f5e0;color:#2a6a3a','De Minimis':'background:#f5f0e8;color:#6a4a10',Notifica:'background:#e8f0f8;color:#1a3a6a','TF Ucraina':'background:#fde8e8;color:#7a1a10','TF Covid-19':'background:#fde8e8;color:#7a1a10',Esenzione:'background:#e8e8f8;color:#3a3a8a'};
+    const fwStyle=fwColors[r[5]]||'background:#f2efe9;color:#4a4744';
+    return `<tr><td class="strong-col">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td><span class="chip" style="${fwStyle}">${r[5]}</span></td><td class="mono">${r[6]}</td></tr>`;
+  }).join('');
+
+  // Flags
+  const flagsHtml=(d.red_flags||[]).map(f=>
+    `<div class="flag-item flag-${f.type==='danger'?'danger':'warning'}"><span class="flag-icon">${f.type==='danger'?'🔴':'🟡'}</span><div><div class="flag-text">${f.text}</div>${f.action?'<div class="flag-action">→ '+f.action+'</div>':''}</div></div>`
+  ).join('');
+
+  // Priorità
+  const prioRows=(d.priorities||[]).map(r=>{
+    if(!Array.isArray(r)||r.length<4) return '';
+    const pc=r[3]==='Alta'?'prio-alta':r[3]==='Media'?'prio-media':'prio-bassa';
+    return `<tr><td class="ac">${r[0]}</td><td class="oc">${r[1]}</td><td class="ec">${r[2]}</td><td><span class="prio ${pc}">${r[3]}</span></td></tr>`;
+  }).join('');
+
+  // RENDER
+  const dash=document.getElementById('dashboard');
+  dash.innerHTML=`
+  <div class="sec"><div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Snapshot finanziario</span><span class="sec-sub">Valori in €K</span></div>
+    <div class="metrics-row">${metricsHtml}</div>
+    <div class="charts-quad">
+      <div class="chart-card mini"><div class="chart-title"><span class="ct-dot" style="background:#c8501a"></span>Ricavi netti · €K</div><div style="position:relative;width:100%;height:150px"><canvas id="chRicavi"></canvas></div></div>
+      <div class="chart-card mini"><div class="chart-title"><span class="ct-dot" style="background:#1a7a6e"></span>EBITDA · €K</div><div style="position:relative;width:100%;height:150px"><canvas id="chEbitda"></canvas></div></div>
+      <div class="chart-card mini"><div class="chart-title"><span class="ct-dot" style="background:#1a4f8a"></span>Utile netto · €K</div><div style="position:relative;width:100%;height:150px"><canvas id="chUtile"></canvas></div></div>
+      <div class="chart-card mini"><div class="chart-title"><span class="ct-dot" style="background:#5b4b8a"></span>Costo del lavoro · €K</div><div style="position:relative;width:100%;height:150px"><canvas id="chLavoro"></canvas></div></div>
+    </div>
+    ${notesHtml?'<div class="notes-wrap">'+notesHtml+'</div>':''}
+  </div>
+  <div class="sec"><div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Mappa del valore Leyton — prodotti proponibili</span></div>
+    <div class="vmap"><div class="vmap-grid">${vmHtml}</div>
+      <div class="vmap-legend">
+        <div class="vmap-leg-item"><div class="vmap-leg-dot" style="background:#2a6a3a"></div>Proponi</div>
+        <div class="vmap-leg-item"><div class="vmap-leg-dot" style="background:#8a5a1a"></div>Da valutare</div>
+        <div class="vmap-leg-item"><div class="vmap-leg-dot" style="background:#e8e4dc"></div>Non rilevato</div>
+      </div>
+    </div>
+  </div>
+  <div class="sec"><div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Aree di opportunità Leyton</span></div>
+    <div class="areas-grid">${areasHtml}</div>
+  </div>
+  <div class="sec"><div class="sec-head"><span class="sec-num">04</span><span class="sec-title">IP → Patent Box · stima beneficio fiscale</span></div>
+    <div class="pb-block">
+      <div class="pb-card"><div class="pb-card-title">⊕ Imponibile e imposte</div><div class="pb-flow">${pbFlowHtml}</div>${d.pbNote?'<div class="pb-tech-note">'+d.pbNote+'</div>':''}</div>
+      <div class="pb-card"><div class="pb-card-title">⊕ IP agevolabile Patent Box</div><div class="pb-elig">${pbEligHtml}</div></div>
+    </div>
+  </div>
+  <div class="sec"><div class="sec-head"><span class="sec-num">05</span><span class="sec-title">Agevolazioni ricevute — RNA</span></div>
+    <div class="card"><div class="data-table-wrap"><table class="dt"><thead><tr><th>Misura</th><th>Concedente</th><th>Nominale</th><th>Elem. aiuto</th><th>Anno</th><th>Framework</th><th>COR</th></tr></thead><tbody>${rnaRows}</tbody></table></div>
+    ${d.rnaNote?'<div style="padding:12px 16px;background:var(--paper2);border-top:1px solid var(--line);font-size:12px;color:var(--ink3)">'+d.rnaNote+'</div>':''}</div>
+  </div>
+  <div class="sec"><div class="sec-head"><span class="sec-num">06</span><span class="sec-title">Red flag e note operative</span></div>
+    <div class="flags-list">${flagsHtml||'<div style="padding:16px;font-size:12px;color:var(--ink3);font-style:italic">Nessun red flag rilevato.</div>'}</div>
+  </div>
+  <div class="sec"><div class="sec-head"><span class="sec-num">07</span><span class="sec-title">Sintesi priorità commerciali</span></div>
+    <div class="card"><div class="data-table-wrap"><table class="pt"><thead><tr><th>Area</th><th>Opportunità</th><th>Evidenza</th><th>Priorità</th></tr></thead><tbody>${prioRows}</tbody></table></div></div>
+  </div>
+  <div class="footer"><span>Elaborato da <strong>Leyton BPM Dashboard</strong> · ${d.company||'Prospect'} · ${d.date||''} · riferimenti normativi 2026</span><span>Uso interno Leyton — <strong>non distribuire</strong></span></div>`;
+
+  // Rebuild charts
+  if(years.length>0){
+    miniChart('chRicavi',revs,'#c8501a','rgba(200,80,26,0.78)');
+    miniChart('chEbitda',ebit,'#1a7a6e','rgba(26,122,110,0.78)');
+    miniChart('chUtile',netP,'#1a4f8a','rgba(26,79,138,0.78)');
+    const lc=fin.labor_cost_series||[fin.labor_cost,fin.labor_cost,fin.labor_cost];
+    miniChart('chLavoro',lc,'#5b4b8a','rgba(91,75,138,0.6)');
+  }
 }
 
 /* ============================================================
