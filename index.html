@@ -649,11 +649,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);f
 const C = Chart;
 let charts = {};
 
-function miniChart(id, data, color, rgba){
+function miniChart(id, data, color, rgba, labels){
   if(charts[id]) charts[id].destroy();
   charts[id] = new C(document.getElementById(id),{
     type:'bar',
-    data:{labels:['2022','2023','2024'],datasets:[
+    data:{labels:labels||['2022','2023','2024'],datasets:[
       {data:data,backgroundColor:rgba,borderColor:color,borderWidth:1.5,borderRadius:4,borderSkipped:false}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
@@ -879,11 +879,12 @@ function renderFromJSON(d){
 
   // Rebuild charts
   if(years.length>0){
-    miniChart('chRicavi',revs,'#c8501a','rgba(200,80,26,0.78)');
-    miniChart('chEbitda',ebit,'#1a7a6e','rgba(26,122,110,0.78)');
-    miniChart('chUtile',netP,'#1a4f8a','rgba(26,79,138,0.78)');
+    const yearLabels=years.map(String);
+    miniChart('chRicavi',revs,'#c8501a','rgba(200,80,26,0.78)',yearLabels);
+    miniChart('chEbitda',ebit,'#1a7a6e','rgba(26,122,110,0.78)',yearLabels);
+    miniChart('chUtile',netP,'#1a4f8a','rgba(26,79,138,0.78)',yearLabels);
     const lc=fin.labor_cost_series||[fin.labor_cost,fin.labor_cost,fin.labor_cost];
-    miniChart('chLavoro',lc,'#5b4b8a','rgba(91,75,138,0.6)');
+    miniChart('chLavoro',lc,'#5b4b8a','rgba(91,75,138,0.6)',yearLabels);
   }
 }
 
